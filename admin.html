@@ -128,7 +128,7 @@
       st.missRows = rows; st.missDay = day;
       var none = rows.filter(function (r) { return !r.m; }).length;
       var out = '<div class="sm" style="margin:8px 0 6px"><b>Не заполнили: ' + rows.length + ' ' + (rows.length === 1 ? 'куратор' : 'кураторов') + '</b>' +
-        ' <span class="mut">· красным — не начинали (' + none + '), жёлтым — заполнено частично (' + (rows.length - none) + ')</span>' +
+        ' <span class="mut">· красным — вообще не приступили (' + none + '), жёлтым — отмечена только часть студентов (' + (rows.length - none) + ')</span>' +
         ' <button class="btn ghost sm noprint" id="missCopy" style="margin-left:8px">📋 Скопировать напоминание</button></div>';
       rows.forEach(function (r) {
         var red = !r.m, bg = red ? '#fff1ef' : '#fff6dc', fg = red ? '#b0241a' : '#8a5300';
@@ -138,10 +138,10 @@
       });
       return out;
     }
-    function copyText(t) {
+    window.copyText = function (t) {
       function fb() { var ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); UI.toast(ok ? 'Напоминание скопировано' : 'Не удалось скопировать'); }
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function () { UI.toast('Напоминание скопировано'); }, fb); else fb();
-    }
+};
 
     /* сегодня */
     var td = lastWork(K.today()), tdOff = S.isOff(K.today()), done = 0, miss = [];
@@ -244,8 +244,9 @@
     $('#dday').onchange = function (e) { if (e.target.value) { st.day = e.target.value; re(); } };
     [].forEach.call(app.querySelectorAll('[data-dd]'), function (g) { g.onclick = function () { st.day = g.dataset.dd; re(); }; });
     var mc = $('#missCopy'); if (mc) mc.onclick = function () {
-      var rows = st.missRows || [];
-      copyText('Коллеги, просьба заполнить посещаемость за ' + K.fmtLong(st.missDay) + ':\n' + rows.map(function (r) { return '• ' + K.shortName(r.name) + ' (' + r.gs.map(function (x) { return x.g.id; }).join(', ') + ')'; }).join('\n'));
+      var rows = (st.missRows || []).filter(function (r) { return !r.m; });
+      if (!rows.length) { UI.toast('Все кураторы уже начали заполнять'); return; }
+      window.copyText('Коллеги, просьба заполнить посещаемость за ' + K.fmtLong(st.missDay) + ':\n' + rows.map(function (r) { return '• ' + K.shortName(r.name) + ' (' + r.gs.map(function (x) { return x.g.id; }).join(', ') + ')'; }).join('\n'));
     };
     var ra = $('#rall'); if (ra) ra.onclick = function () { st.allRisk = !st.allRisk; re(); };
     var rk = $('#rkall'); if (rk) rk.onclick = function () { st.allRank = !st.allRank; re(); };
