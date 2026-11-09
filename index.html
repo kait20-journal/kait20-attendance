@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>КАИТ-20 · Посещаемость — куратор</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="top"><div class="wrap">
+  <div class="brand"><div class="logo">К20</div><div>КАИТ-20 · Посещаемость<small>Журнал куратора</small></div></div>
+  <div class="sp"></div>
+  <button class="who" id="whoBtn">Представьтесь</button>
+</div></div>
+<div class="demo" id="demo"></div>
+
+<main class="wrap" id="app"></main>
+
+<div class="ov" id="nameOv"><div class="modal">
+  <h3>Как вас зовут?</h3>
+  <div class="mut sm" style="margin-top:6px">Выберите себя из списка кураторов: имя попадёт в журнал изменений, так видно, кто поставил отметку. Пароль не нужен.</div>
+  <select id="nameSel" style="width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin:10px 0;background:#fff"></select>
+  <input type="text" id="nameIn" placeholder="Фамилия И. О." autocomplete="name" style="display:none">
+  <button class="btn" id="nameOk" style="width:100%">Продолжить</button>
+</div></div>
+
+<script src="config.js"></script>
+<script src="core.js"></script>
+<script src="ui.js"></script>
+<script>
+(function () {
+  var K = KAIT, S = K.Store, UI = window.UI, $ = UI.$, esc = K.esc;
+  var app = $('#app');
+  var st = { gid: null, date: null, view: 'day', course: 0, ym: null, mine: false };
+
+  function lastWork(d) { var x = K.parse(d); for (var i = 0; i < 10 && S.isOff(K.iso(x)); i++) x.setDate(x.getDate() - 1); return K.iso(x); }
+  st.date = lastWork(K.today()); st.ym = st.date.slice(0, 7);
+
+  function hashRead() {
+    var h = location.hash.replace('#', ''), o = {};
+    h.split('&').forEach(function (p) { var kv = p.split('='); if (kv[0]) o[kv[0]] = decodeURIComponent(kv[1] || ''); });
+    st.gid = o.g && S.group(o.g) ? o.g : null;
+    if (o.d && /^\d{4}-\d\d-\d\d$/.test(o.d)) { st.date = o.d; st.ym = o.d.slice(0, 7); }
+    if (o.v === 'month' || o.v === 'day') st.view = o.v;
+  }
+  function hashWrite() {
+    var h = st.gid ? 'g=' + encodeURIComponent(st.gid) + '&d=' + st.date + '&v=' + st.view : '';
+    try { if (location.hash.replace('#', '') !== h) history.replaceState(null, '', '#' + h); } catch (e) {}
+  }
+
+  /* ---------- имя ---------- */
+  function who() { var w = S.who(); $('#whoBtn').textContent = w ? '👤 ' + K.shortName(w) : 'Представьтесь'; return w; }
+  function myGroups() { if (K.REMOTE) return S.groups().map(function (g) { return g.id; }); var w = S.who(), c = S.curators().filter(function (x) { return x.name === w; })[0]; return c ? c.groups : []; }
+  function askName(force) {
+    if (S.who() && !force) return;
+    var sel = $('#nameSel'), cur = S.who();
+    sel.innerHTML = '<option value="">— выберите себя —</option>' + S.curators().map(function (c) { return '<option value="' + esc(c.name) + '"' + (c.name === cur ? ' selected' : '') + '>' + esc(c.name) + ' · ' + c.groups.join(', ') + '</option>'; }).join('') + '<option value="__other">Меня нет в списке…</option>';
+    $('#nameIn').style.display = 'none';
+    $('#nameOv').classList.add('on');
+  }
+  $('#nameSel').onchange = function () { var o = this.value === '__other'; $('#nameIn').style.display = o ? 'block' : 'none'; if (o) $('#nameIn').focus(); };
+  $('#nameOk').onclick = function () {
+    var v = $('#nameSel').value === '__other' ? $('#nameIn').value.trim() : $('#nameSel').value; if (!v) return;
+    S.who(v); st.mine = myGroups().length > 0; st.course = 0; $('#nameOv').classList.remove('on'); who(); render();
+  };
+  $('#nameIn').onkeydown = function (e) { if (e.key === 'Enter') $('#nameOk').click(); };
+  $('#whoBtn').onclick = function () { askName(true); };
+
+  /* ---------- главный экран ---------- */
+  function home() {
+    var di = S.dayInfo(st.date), mine = myGroups(); if (!mine.length) st.mine = false;
+    var groups = S.groups().filter(function (g) { return st.mine ? mine.indexOf(g.id) >= 0 : (!st.course || g.course === st.course); });
+    var courses = [0].concat(S.groups().map(function (g) { return g.course; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).sort());
+    var h = '<div class="hero"><h1>Отметьте посещаемость</h1><p>Выберите группу. Отметки сохраняются сразу и видны заведующей.</p></div>' +
+      '<div class="mrow"><span class="sm mut">Дата:</span><input type="date" id="dsel" value="' + st.date + '" style="border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:#fff">' +
+      '<button class="btn ghost sm" id="dtoday">Сегодня</button></div>';
+    if (di.off) h += '<div class="card" style="margin:10px 0;background:#f1f3f8"><b>🗓 ' + K.fmtLong(st.date) + ' — ' + esc(di.label || 'выходной день') + '.</b> <span class="mut">Отметки закрыты. Выберите учебный день.</span></div>';
+    h += '<div class="chips" style="margin-top:12px">' + (mine.length ? '<button class="chip' + (st.mine ? ' on' : '') + '" data-c="m">Мои группы (' + mine.length + ')</button>' : '') + courses.map(function (c) { return '<button class="chip' + (!st.mine && st.course === c ? ' on' : '') + '" data-c="' + c + '">' + (c ? c + ' курс' : 'Все группы') + '</button>'; }).join('') + '</div>';
+    h += '<div class="grid">' + groups.map(function (g) {
+      var n = S.rosterOn(g, st.date).length, m = di.off ? 0 : S.marked(g.id, st.date), done = m === n, pct = n ? Math.round(m / n * 100) : 0;
+      return '<button class="gcard" data-g="' + esc(g.id) + '"><b>' + esc(g.name) + '</b><div class="meta">' + g.course + ' курс · ' + n + ' студ.</div>' + (!st.mine && g.curator ? '<div class="meta">' + esc(K.shortName(g.curator)) + '</div>' : '') +
+        '<div class="bar ' + (done ? 'done' : '') + '"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="state ' + (done ? 'ok' : '') + '">' + (di.off ? 'Выходной' : done ? '✓ Отмечено полностью' : m ? 'Отмечено ' + m + ' из ' + n : 'Не отмечено') + '</div></button>';
+    }).join('') + '</div>';
+    app.innerHTML = h;
+    $('#dsel').onchange = function (e) { if (e.target.value) { st.date = e.target.value; st.ym = st.date.slice(0, 7); render(); } };
+    $('#dtoday').onclick = function () { st.date = lastWork(K.today()); st.ym = st.date.slice(0, 7); render(); };
+    [].forEach.call(app.querySelectorAll('.chip'), function (b) { b.onclick = function () { if (b.dataset.c === 'm') { st.mine = true; st.course = 0; } else { st.mine = false; st.course = +b.dataset.c; } render(); }; });
+    [].forEach.call(app.querySelectorAll('.gcard'), function (b) { b.onclick = function () { st.gid = b.dataset.g; render(); window.scrollTo(0, 0); }; });
+  }
+
+  /* ---------- группа ---------- */
+  function monthShift(n) { var p = st.ym.split('-'), d = new Date(+p[0], +p[1] - 1 + n, 1); st.ym = d.getFullYear() + '-' + K.pad(d.getMonth() + 1); }
+  function group() {
+    var g = S.group(st.gid), p = st.ym.split('-'), y = +p[0], m = +p[1] - 1, dates = K.monthDates(y, m, false);
+    var h = '<div class="crumb"><button class="back" id="back">← Все группы</button><h2>' + esc(g.name) + '</h2><span class="mut sm">' + g.course + ' курс · ' + g.students.length + ' студ.' + (g.curator ? ' · куратор ' + esc(K.shortName(g.curator)) : '') + '</span><div class="sp" style="flex:1"></div>' +
+      '<div class="tabs"><button data-v="day" class="' + (st.view === 'day' ? 'on' : '') + '">День</button><button data-v="month" class="' + (st.view === 'month' ? 'on' : '') + '">Табель за месяц</button></div></div>';
+    h += '<div class="mrow"><button class="btn ghost sm" id="mp">‹</button><b style="min-width:130px;text-align:center">' + K.MONTHS[m] + ' ' + y + '</b><button class="btn ghost sm" id="mn">›</button></div>';
+    if (st.view === 'day') {
+      h += '<div class="datebar" id="dbar">' + dates.map(function (d) {
+        var dt = K.parse(d), di = S.dayInfo(d), mk = di.off ? 0 : S.marked(g.id, d), cls = 'dpill' + (d === st.date ? ' on' : '') + (di.off ? ' wk' : '') + (!di.off && mk === S.rosterOn(g, d).length ? ' done' : !di.off && mk ? ' part' : '');
+        return '<button class="' + cls + '" data-d="' + d + '" title="' + esc(di.label) + '"><small>' + K.DOW[dt.getDay()] + '</small><b>' + dt.getDate() + '</b></button>';
+      }).join('') + '</div>';
+      var di = S.dayInfo(st.date), cnt = { p: 0, a: 0, n: 0 };
+      S.rosterOn(g, st.date).forEach(function (s) { var v = S.get(g.id, s.id, st.date); if (!v) cnt.n++; else if (v === '+' || v === 'о') cnt.p++; else cnt.a++; });
+      h += '<div class="sumbar"><div><div class="n">' + K.fmtLong(st.date) + '</div></div>' +
+        (di.off ? '' : '<div><span>присутствуют</span><div class="n" style="color:var(--plus)">' + cnt.p + '</div></div><div><span>отсутствуют</span><div class="n" style="color:var(--nev)">' + cnt.a + '</div></div><div><span>не отмечено</span><div class="n">' + cnt.n + '</div></div>' +
+        '<button class="btn sm" id="allp"' + (cnt.n ? '' : ' disabled') + '>✓ Все присутствуют</button>') + '</div>';
+      if (di.off) h += '<div class="card" style="background:#f1f3f8;margin-bottom:12px"><b>🗓 ' + esc(di.label || 'Выходной день') + '</b> <span class="mut">— отметки закрыты заведующей отделением.</span></div>';
+      h += '<div class="list">' + S.rosterOn(g, st.date).map(function (s, i) {
+        var v = S.get(g.id, s.id, st.date), c = v ? K.CODES[v] : null;
+        return '<div class="row" data-s="' + s.id + '"><span class="num">' + (i + 1) + '</span><div class="nm">' + esc(s.fio) + '</div>' +
+          (!v && !di.off ? '<button class="ok" title="Присутствует" data-ok="' + s.id + '">✓</button>' : '') +
+          '<button class="cur ' + (c ? 'k-' + c.key : 'k-none') + '" data-pick="' + s.id + '"' + (di.off ? ' disabled' : '') + '>' + (c ? '<span class="st">' + (v === '+' ? '✓' : v) + '</span>' + c.label : 'Не отмечен') + '</button></div>';
+      }).join('') + '</div>' + UI.legend();
+    } else {
+      h += '<div class="mut sm" style="margin:2px 0 10px">Нажмите на клетку, чтобы поставить или изменить отметку. Штриховка — выходной день.</div><div id="mx"></div>' + UI.legend();
+    }
+    app.innerHTML = h;
+    $('#back').onclick = function () { st.gid = null; render(); };
+    $('#mp').onclick = function () { monthShift(-1); render(); }; $('#mn').onclick = function () { monthShift(1); render(); };
+    [].forEach.call(app.querySelectorAll('.tabs button'), function (b) { b.onclick = function () { st.view = b.dataset.v; render(); }; });
+    if (st.view === 'day') {
+      var bar = $('#dbar'), on = bar.querySelector('.on'); if (on) bar.scrollLeft = on.offsetLeft - 90;
+      [].forEach.call(bar.querySelectorAll('.dpill'), function (b) { b.onclick = function () { st.date = b.dataset.d; render(); }; });
+      var all = $('#allp'); if (all) all.onclick = function () {
+        var w = who() || '—', n = 0; S.rosterOn(g, st.date).forEach(function (s) { if (!S.get(g.id, s.id, st.date)) { S.set(g.id, s.id, st.date, '+', w, true); n++; } });
+        S.commit(); UI.toast('Отмечено присутствующими: ' + n);
+      };
+      [].forEach.call(app.querySelectorAll('[data-ok]'), function (b) { b.onclick = function (e) { e.stopPropagation(); S.set(g.id, b.dataset.ok, st.date, '+', who()); }; });
+      [].forEach.call(app.querySelectorAll('[data-pick]'), function (b) { b.onclick = function () { UI.openSheet({ gid: g.id, sid: b.dataset.pick, date: st.date }); }; });
+      [].forEach.call(app.querySelectorAll('.row .nm'), function (n) { n.onclick = function () { UI.openSheet({ gid: g.id, sid: n.parentNode.dataset.s, date: st.date }); }; });
+    } else UI.matrix($('#mx'), g.id, dates, { editable: true });
+  }
+
+  function render() { who(); hashWrite(); if (st.gid) group(); else home(); }
+  var raf; S.onChange(function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { var sc = window.scrollY, mx = document.querySelector('.mwrap'), mt = mx && mx.scrollTop, ml = mx && mx.scrollLeft; render(); window.scrollTo(0, sc); var m2 = document.querySelector('.mwrap'); if (m2 && mx) { m2.scrollTop = mt; m2.scrollLeft = ml; } }); });
+  window.addEventListener('hashchange', function () { hashRead(); render(); });
+
+  UI.demoBar($('#demo'));
+  function boot() { hashRead(); render(); if (!K.REMOTE) askName(false); }
+  if (!K.REMOTE) boot();
+  else {
+    var tok = ''; try { tok = new URLSearchParams(location.search).get('k') || sessionStorage.getItem('kait20-k') || ''; } catch (e) {}
+    if (!tok) { app.innerHTML = '<div class="card" style="padding:22px;margin-top:20px"><h3>Нужна личная ссылка</h3><div class="mut" style="margin-top:6px">Откройте журнал по личной ссылке, которую вам выдала заведующая отделением. Пароль не нужен.</div></div>'; }
+    else {
+      try { sessionStorage.setItem('kait20-k', tok); history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+      app.innerHTML = '<div class="mut" style="padding:30px;text-align:center">Загружаю журнал…</div>';
+      K.Net.login({ k: tok }).then(function () { $('#whoBtn').onclick = null; st.mine = false; boot(); }).catch(function (e) {
+        try { sessionStorage.removeItem('kait20-k'); } catch (x) {}
+        app.innerHTML = '<div class="card" style="padding:22px;margin-top:20px"><h3>Не удалось открыть журнал</h3><div class="mut" style="margin-top:6px">' + (e.message === 'auth' ? 'Ссылка недействительна. Попросите заведующую выдать новую.' : 'Нет связи с сервером. Обновите страницу.') + '</div></div>';
+      });
+    }
+  }
+})();
+</script>
+</body>
+</html>
