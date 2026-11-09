@@ -116,13 +116,40 @@
       '<label>Группа<select id="fg"><option value="">Все</option>' + all.map(function (g) { return '<option' + (st.gid === g.id ? ' selected' : '') + '>' + g.id + '</option>'; }).join('') + '</select></label>' +
       '<div style="flex:1"></div>' + monthsIn(st.from, st.to).map(function (m) { return '<button class="btn ghost sm xlm" data-m="' + m + '">⬇ Табель · ' + K.MONTHS[+m.slice(5) - 1] + '</button>'; }).join('') + '<button class="btn ghost sm" id="pr">🖨 Печать / PDF</button></div>';
 
+    /* кто не заполнил: по кураторам */
+    function missBlock(list, day) {
+      var by = {}, order = [];
+      list.forEach(function (x) {
+        var k = x.g.curator || '— куратор не указан';
+        if (!by[k]) { by[k] = { name: k, gs: [], m: 0, n: 0 }; order.push(k); }
+        var n = S.rosterOn(x.g, day).length; by[k].gs.push({ g: x.g, m: x.m, n: n }); by[k].m += x.m; by[k].n += n;
+      });
+      var rows = order.map(function (k) { return by[k]; }).sort(function (p, q) { return (p.m ? 1 : 0) - (q.m ? 1 : 0) || p.name.localeCompare(q.name, 'ru'); });
+      st.missRows = rows; st.missDay = day;
+      var none = rows.filter(function (r) { return !r.m; }).length;
+      var out = '<div class="sm" style="margin:8px 0 6px"><b>Не заполнили: ' + rows.length + ' ' + (rows.length === 1 ? 'куратор' : 'кураторов') + '</b>' +
+        ' <span class="mut">· красным — не начинали (' + none + '), жёлтым — заполнено частично (' + (rows.length - none) + ')</span>' +
+        ' <button class="btn ghost sm noprint" id="missCopy" style="margin-left:8px">📋 Скопировать напоминание</button></div>';
+      rows.forEach(function (r) {
+        var red = !r.m, bg = red ? '#fff1ef' : '#fff6dc', fg = red ? '#b0241a' : '#8a5300';
+        out += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:5px 0;border-top:1px solid var(--line)">' +
+          '<span style="min-width:190px;font-weight:650;color:' + fg + '">' + esc(K.shortName(r.name)) + '</span>' +
+          r.gs.map(function (x) { return '<span class="cl" data-g="' + esc(x.g.id) + '" style="cursor:pointer;background:' + (x.m ? '#fff6dc' : '#fff1ef') + ';color:' + (x.m ? '#8a5300' : '#b0241a') + ';border-radius:8px;padding:3px 9px;font-size:12.5px;font-weight:600" title="' + x.m + ' из ' + x.n + ' отмечено">' + esc(x.g.id) + ' · ' + x.m + '/' + x.n + '</span>'; }).join('') + '</div>';
+      });
+      return out;
+    }
+    function copyText(t) {
+      function fb() { var ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} ta.remove(); UI.toast(ok ? 'Напоминание скопировано' : 'Не удалось скопировать'); }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function () { UI.toast('Напоминание скопировано'); }, fb); else fb();
+    }
+
     /* сегодня */
     var td = lastWork(K.today()), tdOff = S.isOff(K.today()), done = 0, miss = [];
     all.forEach(function (g) { var m = S.marked(g.id, td); if (m === S.rosterOn(g, td).length) done++; else miss.push({ g: g, m: m }); });
     var frac = done / all.length, C = 2 * Math.PI * 30;
     h += '<div class="card sec today"><svg class="ring" viewBox="0 0 74 74"><circle cx="37" cy="37" r="30" fill="none" stroke="#e8edf5" stroke-width="9"/><circle cx="37" cy="37" r="30" fill="none" stroke="#22a35a" stroke-width="9" stroke-linecap="round" stroke-dasharray="' + (C * frac) + ' ' + C + '" transform="rotate(-90 37 37)"/><text x="37" y="42" text-anchor="middle" font-size="16" font-weight="800" fill="#12203a">' + done + '/' + all.length + '</text></svg>' +
       '<div style="flex:1;min-width:240px"><h3>' + (K.today() === td ? 'Сегодня' : 'Последний учебный день') + ', ' + K.fmtLong(td) + '</h3><div class="mut sm">' + (tdOff ? 'Сегодня выходной (' + esc(S.dayInfo(K.today()).label) + '). ' : '') + 'Группы с полностью заполненной посещаемостью: ' + done + ' из ' + all.length + '</div>' +
-      (miss.length ? '<div class="miss">' + (st.allMiss ? miss : miss.slice(0, 12)).map(function (x) { return '<span class="cl" data-g="' + esc(x.g.id) + '" style="cursor:pointer" title="' + x.m + ' из ' + x.g.students.length + ' отмечено">' + esc(x.g.id) + (x.m ? ' · ' + x.m + '/' + x.g.students.length : '') + (x.g.curator ? ' · ' + esc(K.shortName(x.g.curator)) : '') + '</span>'; }).join('') + (miss.length > 12 ? '<button class="btn ghost sm noprint" id="missAll">' + (st.allMiss ? 'Свернуть' : 'Ещё ' + (miss.length - 12)) + '</button>' : '') + '</div>' : '<div class="mut sm" style="margin-top:6px">✓ Все группы отмечены</div>') + '</div></div>';
+      (miss.length ? missBlock(miss, td) : '<div class="mut sm" style="margin-top:6px">✓ Все группы отмечены</div>') + '</div></div>';
 
     /* KPI */
     var risk = riskList(gs, dates);
@@ -216,7 +243,10 @@
     $('#dtod').onclick = function () { st.day = null; re(); };
     $('#dday').onchange = function (e) { if (e.target.value) { st.day = e.target.value; re(); } };
     [].forEach.call(app.querySelectorAll('[data-dd]'), function (g) { g.onclick = function () { st.day = g.dataset.dd; re(); }; });
-    var ma = $('#missAll'); if (ma) ma.onclick = function () { st.allMiss = !st.allMiss; re(); };
+    var mc = $('#missCopy'); if (mc) mc.onclick = function () {
+      var rows = st.missRows || [];
+      copyText('Коллеги, просьба заполнить посещаемость за ' + K.fmtLong(st.missDay) + ':\n' + rows.map(function (r) { return '• ' + K.shortName(r.name) + ' (' + r.gs.map(function (x) { return x.g.id; }).join(', ') + ')'; }).join('\n'));
+    };
     var ra = $('#rall'); if (ra) ra.onclick = function () { st.allRisk = !st.allRisk; re(); };
     var rk = $('#rkall'); if (rk) rk.onclick = function () { st.allRank = !st.allRank; re(); };
     $('#pr').onclick = function () { try { window.print(); } catch (e) { UI.toast('Печать недоступна в этом окне'); } };
