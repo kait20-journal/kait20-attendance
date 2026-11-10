@@ -157,3 +157,106 @@ table.tb tr.cl{cursor:pointer}table.tb tr.cl:hover td{background:#f6f8fd}
 @media print{.top,.demo,.filters,.noprint,.drawer .hd button{display:none!important}body{background:#fff}.card,.kpi,.list{box-shadow:none;border:1px solid #ddd}.hm{max-height:none}}
 .demo.sync{background:#eef6ee;color:#1d5e2f;border-bottom-color:#cfe5d2}
 .demo.sync .wrap{padding:4px 16px;font-size:12px}
+
+/* ===== тема Glassy: только оформление, логика не затронута ===== */
+:root{
+  --bg:#2c2724;--card:rgba(255,255,255,.10);--ink:#fff;--mut:rgba(255,255,255,.74);--line:rgba(255,255,255,.16);
+  --acc:#4c9bff;--acc2:#7ab5ff;--accbg:rgba(76,155,255,.18);--r:22px;
+  --sh:0 8px 30px rgba(0,0,0,.18);
+  --plus-bg:rgba(143,240,180,.22);--plus:#b9f7d0;--late-bg:rgba(255,210,122,.24);--late:#ffe3a6;
+  --nev-bg:rgba(255,122,104,.28);--nev:#ffd3cc;--left-bg:rgba(255,170,110,.26);--left:#ffdcbf;
+  --sick-bg:rgba(76,155,255,.28);--sick:#d3e6ff;--appl-bg:rgba(90,220,205,.24);--appl:#c7f6f0;
+  --order-bg:rgba(180,140,250,.28);--order:#e6d8ff;--iup-bg:rgba(255,255,255,.18);--iup:#fff;
+  --prac-bg:rgba(130,140,255,.28);--prac:#dadcff;
+}
+html{background:#1d1a18}
+body{min-height:100vh;color:#fff;background:radial-gradient(1100px 600px at 85% -10%,rgba(120,150,190,.45),transparent 60%),radial-gradient(900px 600px at 0% 100%,rgba(150,110,80,.45),transparent 60%),linear-gradient(135deg,#5a524c 0%,#2c2724 55%,#1d1a18 100%) fixed;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.top{background:rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.14);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.brand .logo{background:rgba(255,255,255,.22);border-radius:14px}
+.top .who{background:rgba(255,255,255,.16)}
+.card,.kpi,.list,.mwrap,.gcard,.modal{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.kpi{border-radius:24px}.kpi.main{background:linear-gradient(135deg,rgba(76,155,255,.5),rgba(76,155,255,.22));border-color:rgba(122,181,255,.6);color:#fff}
+.kpi.main .l,.kpi.main .d{color:rgba(255,255,255,.85)}
+.gcard:hover{border-color:rgba(255,255,255,.4)}
+.chip{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#fff;min-height:36px}
+.chip.on{background:rgba(255,255,255,.26);border-color:rgba(255,255,255,.4);color:#fff}
+.btn{background:#4c9bff;color:#07203f;border-radius:14px}.btn:hover{background:#7ab5ff}
+.btn.ghost{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.22)}.btn.ghost:hover{background:rgba(255,255,255,.2)}
+.k-none{background:transparent;color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.35)}
+.bar,.rank .tr{background:rgba(255,255,255,.16)}.bar i{background:linear-gradient(90deg,#4c9bff,#8ff0b4)}.bar.done i{background:#8ff0b4}
+.gcard .state.ok{color:#b9f7d0}
+.crumb .back{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2);color:#fff}
+.tabs{background:rgba(255,255,255,.10)}.tabs button{color:rgba(255,255,255,.8)}.tabs button.on{background:rgba(255,255,255,.26);color:#fff;box-shadow:none}
+.dpill{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#fff}
+.dpill small{color:rgba(255,255,255,.75)}.dpill.on{background:rgba(76,155,255,.36);border-color:#6aaeff;color:#fff}.dpill.on small{color:#fff}
+.row .num{color:rgba(255,255,255,.6)}.row .ok{background:rgba(143,240,180,.16);border-color:rgba(143,240,180,.5);color:#b9f7d0}.row .ok:hover{background:rgba(143,240,180,.3)}
+table.mx thead th{background:rgba(60,54,50,.96);color:#fff}table.mx thead th.wk{background:rgba(75,69,64,.96);color:rgba(255,255,255,.65)}
+table.mx .nm{background:rgba(60,54,50,.96)}table.mx thead .nm{background:rgba(60,54,50,.98)}
+table.mx th,table.mx td{border-right-color:rgba(255,255,255,.08)}
+table.mx td.off{background:repeating-linear-gradient(45deg,rgba(255,255,255,.05),rgba(255,255,255,.05) 4px,rgba(255,255,255,.10) 4px,rgba(255,255,255,.10) 8px)}
+table.mx td.sum{background:rgba(255,255,255,.06)}
+.ov{background:rgba(10,8,6,.55);backdrop-filter:blur(6px)}
+.sheet,.modal{background:rgba(48,43,40,.94);color:#fff;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(28px)}
+.opt.sel{border-color:#fff}.until{background:rgba(255,255,255,.10)}
+.until input,.modal input[type=text],.modal input[type=password],.filters select,.filters input,.modal select,.modal textarea{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.22)}
+.filters select option,.modal select option{color:#12203a}
+.filters input[type=date]{color-scheme:dark}
+.toast{background:rgba(255,255,255,.92);color:#12203a}
+.miss span{background:rgba(255,122,104,.28);color:#ffd3cc}
+table.hm th,table.hm td.g{background:rgba(60,54,50,.96);color:#fff}table.hm th{color:rgba(255,255,255,.75)}table.hm td.g:hover{color:#7ab5ff}
+.rank .rw:hover b{color:#7ab5ff}
+table.tb tr.cl:hover td{background:rgba(255,255,255,.08)}
+.drawer{background:rgba(44,39,36,.97);backdrop-filter:blur(24px)}
+.gate{background:radial-gradient(900px 600px at 80% 0%,rgba(120,150,190,.45),transparent 60%),linear-gradient(135deg,#5a524c,#1d1a18)}
+.gate .box{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(28px);color:#fff}
+.gate .logo{background:#4c9bff;color:#07203f}.gate input{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25)}
+.gate .err{color:#ffb4a8}
+.demo{background:rgba(255,210,122,.16);color:#ffe9b8;border-bottom-color:rgba(255,210,122,.3)}.demo button{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3)}
+.demo.sync{background:rgba(143,240,180,.14);color:#c9f8da;border-bottom-color:rgba(143,240,180,.3)}
+a{color:#bcd9ff}
+@media print{body{background:#fff!important;color:#12203a}.card,.kpi,.list,.mwrap{background:#fff;color:#12203a;backdrop-filter:none}}
+.ring circle:first-child{stroke:rgba(255,255,255,.2)}.ring text{fill:#fff}
+input,select,textarea{background:rgba(255,255,255,.10)!important;color:#fff!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:12px;color-scheme:dark}
+input[type=checkbox],input[type=radio]{background:none!important;border:0!important}
+select option{background:#2c2724;color:#fff}
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,.55)}
+svg text{fill:rgba(255,255,255,.82)}.ring text{fill:#fff}
+svg line[stroke="#e8edf5"]{stroke:rgba(255,255,255,.14)}
+[style*="#eef1f6"]{background:rgba(255,255,255,.16)!important}
+span[style*="min-width:190px"][style*="#b0241a"]{color:#ffb4a8!important}
+span[style*="min-width:190px"][style*="#8a5300"]{color:#ffd27a!important}
+td.h[style*="#f1f3f8"]{background:rgba(255,255,255,.07)!important}
+.hmlegend i[style*="#f1f3f8"]{background:rgba(255,255,255,.12)!important}
+table.mx td.c{color:inherit}
+
+/* ===== раскладка Glassy для админки ===== */
+.app{display:flex;gap:18px;align-items:flex-start;max-width:1440px;margin:0 auto;padding:16px 16px 0}
+.mainc{flex:1;min-width:0}
+.rail{position:sticky;top:16px;flex:0 0 72px;width:72px;padding:14px 0;display:flex;flex-direction:column;align-items:center;gap:10px;border-radius:28px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.rail button{width:46px;height:46px;border:0;border-radius:16px;background:transparent;display:grid;place-items:center;color:rgba(255,255,255,.82)}
+.rail button:hover{background:rgba(255,255,255,.14)}.rail button.on{background:rgba(255,255,255,.24);color:#fff}
+.app .top{position:static;background:none;border:0;backdrop-filter:none;-webkit-backdrop-filter:none}
+.app .top .wrap{max-width:none;padding:8px 8px 8px 16px;border-radius:28px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.app .tabs{background:transparent!important;border-radius:22px}
+.app .tabs button{border-radius:18px;padding:10px 18px;color:rgba(255,255,255,.8)!important}
+.app .tabs button.on{background:rgba(255,255,255,.24);color:#fff!important}
+.app .demo{margin-top:12px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,210,122,.3)}
+.app main.wrap{max-width:none;padding:0}
+.dg{display:grid;gap:20px;grid-template-columns:minmax(280px,.8fr) 2fr;align-items:start;margin-top:6px}
+.dg-r{display:flex;flex-direction:column;gap:2px;min-width:0}
+.dg-r .kpis{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.dg2{display:grid;gap:20px;grid-template-columns:1.1fr 1fr;align-items:start}
+.today2{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:0}
+.today2 .th{align-self:stretch;font-size:15px}
+.ring.big{width:190px;height:190px;margin:6px 0}
+.trio3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;align-self:stretch}
+.trio3>div{padding:10px 6px;border-radius:16px;background:rgba(255,255,255,.10);text-align:center}
+.trio3 b{display:block;font-size:20px}.trio3 span{font-size:11.5px;color:rgba(255,255,255,.78)}
+.misscard{margin-top:0}
+.misscard [style*="min-width:190px"]{min-width:150px!important}
+@media(max-width:1100px){.dg,.dg2{grid-template-columns:1fr}}
+@media(max-width:760px){.rail{display:none}.app{padding:10px 10px 0}}
+@media print{.rail{display:none}.app{display:block}}
+.dg-r .card svg{max-height:250px;width:100%}
+@media(max-width:760px){.app .top .wrap{flex-wrap:wrap;padding:10px}.app .tabs{width:100%;display:flex;overflow-x:auto}.app .tabs button{flex:1 0 auto;white-space:nowrap;padding:9px 12px}.app .top .brand{width:100%}.top .sp{display:none}}
+@media(max-width:760px){.card.sec{overflow-x:auto}}
