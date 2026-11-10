@@ -19,6 +19,14 @@
 </div></div>
 
 <div id="shell" hidden>
+<div class="app">
+<nav class="rail" aria-label="Разделы">
+  <button data-t="dash" class="on" title="Дашборд" aria-label="Дашборд"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></button>
+  <button data-t="cal" title="Календарь дней" aria-label="Календарь дней"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></button>
+  <button data-t="ros" title="Состав групп" aria-label="Состав групп"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.5 3.3-5.5 6.5-5.5s5.9 2 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 010 6.8M18 14.8c2 .7 3.2 2.4 3.5 5.2"/></svg></button>
+  <button data-t="log" title="Журнал" aria-label="Журнал"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 11h8M8 15h8"/></svg></button>
+</nav>
+<div class="mainc">
 <div class="top"><div class="wrap">
   <div class="brand"><div class="logo">К20</div><div>КАИТ-20 · Посещаемость<small>Панель заведующей отделением</small></div></div>
   <div class="sp"></div>
@@ -28,6 +36,8 @@
 </div></div>
 <div class="demo" id="demo"></div>
 <main class="wrap" id="app"></main>
+</div>
+</div>
 </div>
 
 <div class="drawer" id="drawer"></div>
@@ -149,14 +159,17 @@
     var td = lastWork(K.today()), tdOff = S.isOff(K.today()), done = 0, miss = [];
     all.forEach(function (g) { var m = S.marked(g.id, td); if (m === S.rosterOn(g, td).length) done++; else miss.push({ g: g, m: m }); });
     var frac = done / all.length, C = 2 * Math.PI * 30;
-    h += '<div class="card sec today"><svg class="ring" viewBox="0 0 74 74"><circle cx="37" cy="37" r="30" fill="none" stroke="#e8edf5" stroke-width="9"/><circle cx="37" cy="37" r="30" fill="none" stroke="#22a35a" stroke-width="9" stroke-linecap="round" stroke-dasharray="' + (C * frac) + ' ' + C + '" transform="rotate(-90 37 37)"/><text x="37" y="42" text-anchor="middle" font-size="16" font-weight="800" fill="#12203a">' + done + '/' + all.length + '</text></svg>' +
-      '<div style="flex:1;min-width:240px"><h3>' + (K.today() === td ? 'Сегодня' : 'Последний учебный день') + ', ' + K.fmtLong(td) + '</h3><div class="mut sm">' + (tdOff ? 'Сегодня выходной (' + esc(S.dayInfo(K.today()).label) + '). ' : '') + 'Группы с полностью заполненной посещаемостью: ' + done + ' из ' + all.length + '</div>' +
-      (miss.length ? missBlock(miss, td) : '<div class="mut sm" style="margin-top:6px">✓ Все группы отмечены</div>') + '</div></div>';
+    var P = {}, part = miss.filter(function (x) { return x.m > 0; }).length, none = miss.length - part, RC = 2 * Math.PI * 78;
+    P.today = '<div class="card sec today2"><div class="th"><b>' + (K.today() === td ? 'Сегодня' : 'Последний учебный день') + ', ' + K.fmtLong(td) + '</b></div>' +
+      '<svg class="ring big" viewBox="0 0 190 190"><circle cx="95" cy="95" r="78" fill="none" stroke="#e8edf5" stroke-width="12"/><circle cx="95" cy="95" r="78" fill="none" stroke="#4c9bff" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + (RC * frac) + ' ' + RC + '" transform="rotate(-90 95 95)"/><text x="95" y="106" text-anchor="middle" font-size="44" font-weight="700" fill="#fff">' + Math.round(frac * 100) + '%</text><text x="95" y="128" text-anchor="middle" font-size="12" fill="#fff">групп заполнено</text></svg>' +
+      '<div class="mut sm" style="text-align:center">' + (tdOff ? 'Сегодня выходной (' + esc(S.dayInfo(K.today()).label) + '). ' : '') + 'Полностью заполнено групп: ' + done + ' из ' + all.length + '</div>' +
+      '<div class="trio3"><div><b>' + done + '</b><span>готово</span></div><div><b style="color:#ffd27a">' + part + '</b><span>частично</span></div><div><b style="color:#ff9a8f">' + none + '</b><span>не начали</span></div></div></div>';
+    P.miss = '<div class="card sec misscard">' + (miss.length ? missBlock(miss, td) : '<div class="mut sm">✓ Все группы отмечены</div>') + '</div>';
 
     /* KPI */
     var risk = riskList(gs, dates);
-    h += inCollege(gs, dates);
-    h += '<div class="kpis">' +
+    P.col = inCollege(gs, dates);
+    P.kpi = '<div class="kpis">' +
       '<div class="kpi main"><div class="l">Посещаемость</div><div class="v">' + pct(dv.pct) + '</div><div class="d">' + (delta === null ? dates.length + ' уч. дней в периоде' : (delta >= 0 ? '▲ +' : '▼ ') + pct(delta).replace('%', ' п.п.') + ' к пред. периоду') + '</div></div>' +
       '<div class="kpi"><div class="l">Пропусков всего</div><div class="v">' + dv.absent + '</div><div class="d">уважительных ' + dv.excused + ' · неуваж. ' + dv.unexc + '</div></div>' +
       '<div class="kpi"><div class="l">Неуважительных</div><div class="v" style="color:var(--nev)">' + dv.unexc + '</div><div class="d">' + (dv.absent ? Math.round(dv.unexc / dv.absent * 100) : 0) + '% от всех пропусков</div></div>' +
@@ -165,7 +178,7 @@
       '</div>';
 
     /* тепловая карта */
-    h += '<div class="card sec"><h3>Карта посещаемости <small>доля отсутствующих по группам и дням · нажмите на группу</small></h3><div class="hm"><table class="hm"><thead><tr><th></th>' + monthHead(dates) + '<th></th></tr><tr><th></th>' +
+    P.hm = '<div class="card sec"><h3>Карта посещаемости <small>доля отсутствующих по группам и дням · нажмите на группу</small></h3><div class="hm"><table class="hm"><thead><tr><th></th>' + monthHead(dates) + '<th></th></tr><tr><th></th>' +
       dates.map(function (d) { return '<th title="' + K.fmtLong(d) + '">' + K.parse(d).getDate() + '</th>'; }).join('') + '<th>%</th></tr></thead><tbody>' +
       gs.map(function (g) {
         var gv = K.derive(K.groupCnt(g.id, dates));
@@ -179,17 +192,18 @@
       '<div class="hmlegend"><span>меньше пропусков</span><i style="background:#e6f6ec"></i><i style="background:#ffe3a3"></i><i style="background:#f7a07a"></i><i style="background:#e5483b"></i><span>больше</span><i style="background:#f1f3f8;margin-left:12px"></i><span>нет отметок</span></div></div>';
 
     /* рейтинг + динамика */
-    h += '<div class="cols two"><div class="card sec rank"><h3>Рейтинг групп <small>пропуски в % от посещаемых занятий</small></h3>' + rankHtml(gs, dates) + '</div>' +
-      '<div class="card sec"><h3>Пропуски по дням <small>число студентов</small></h3>' + dynHtml(gs, dates) + '</div></div>';
+    P.rank = '<div class="card sec rank"><h3>Рейтинг групп <small>пропуски в % от посещаемых занятий</small></h3>' + rankHtml(gs, dates) + '</div>';
+    P.dyn = '<div class="card sec"><h3>Пропуски по дням <small>число студентов</small></h3>' + dynHtml(gs, dates) + '</div>';
 
     /* зона риска */
     var rk0 = risk.filter(function (r) { return r.unexc >= st.thr; }), pool = st.allRisk ? risk.filter(function (r) { return r.unexc > 0; }) : rk0, shown = st.allRisk ? pool : pool.slice(0, 12);
-    h += '<div class="card sec"><h3>Зона риска <small>неуважительные пропуски за период</small><span style="flex:1"></span><label class="sm mut noprint">порог: от <input type="number" id="thr" min="1" max="30" value="' + st.thr + '" style="width:56px;border:1px solid var(--line);border-radius:8px;padding:4px 6px"> «н»</label></h3>' +
+    P.risk = '<div class="card sec"><h3>Зона риска <small>неуважительные пропуски за период</small><span style="flex:1"></span><label class="sm mut noprint">порог: от <input type="number" id="thr" min="1" max="30" value="' + st.thr + '" style="width:56px;border:1px solid var(--line);border-radius:8px;padding:4px 6px"> «н»</label></h3>' +
       '<table class="tb"><thead><tr><th>Студент</th><th>Группа</th><th>Куратор</th><th>Неуваж.</th><th>Подряд</th><th>Всего пропусков</th><th>Посещ.</th></tr></thead><tbody>' +
       (shown.length ? shown.map(function (r) {
         return '<tr class="cl" data-s="' + r.s.id + '"><td>' + esc(r.s.fio) + '</td><td>' + esc(r.g.id) + '</td><td class="mut">' + esc(r.g.curator ? K.shortName(r.g.curator) : '') + '</td><td><span class="pill ' + (r.unexc >= st.thr ? 'red' : 'amb') + '">' + r.unexc + '</span></td><td>' + (r.streak || '–') + '</td><td>' + r.absent + '</td><td>' + pct(r.pct, 0) + '</td></tr>';
       }).join('') : '<tr><td colspan="7" class="empty">Нет данных за период</td></tr>') + '</tbody></table>' +
       (rk0.length > 12 || st.allRisk ? '<div style="margin-top:10px"><button class="btn ghost sm noprint" id="rall">' + (st.allRisk ? 'Свернуть' : 'Показать всех с неуваж. пропусками (' + risk.filter(function (r) { return r.unexc > 0; }).length + ')') + '</button></div>' : '') + '</div>';
+    h += '<div class="dg"><div class="dg-l">' + P.today + '</div><div class="dg-r">' + P.kpi + P.dyn + '</div></div><div class="dg2">' + P.miss + P.rank + '</div>' + P.risk + P.col + P.hm;
     app.innerHTML = h;
     bindDash();
   }
@@ -397,13 +411,13 @@
   }
 
   function render() {
-    [].forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.classList.toggle('on', b.dataset.t === st.tab); b.style.color = b.dataset.t === st.tab ? '' : '#cfe0ff'; });
+    [].forEach.call(document.querySelectorAll('#tabs button, .rail button'), function (b) { b.classList.toggle('on', b.dataset.t === st.tab); b.style.color = b.dataset.t === st.tab ? '' : '#cfe0ff'; });
     if (st.tab === 'dash') dash(); else if (st.tab === 'cal') { cal(); bindRm(); } else if (st.tab === 'ros') roster(); else log();
   }
   function bindRm() { [].forEach.call(app.querySelectorAll('[data-rm]'), function (b) { b.onclick = function () { S.setDay(b.dataset.rm, null); }; }); }
   function init() {
     app = $('#app'); UI.demoBar($('#demo'), 'Данные: октябрь 2026 (2–4 курсы) и ноябрь 2026 (1 курс), ФИО студентов обезличены. Страница куратора открывается отдельно: <a href="index.html" target="_blank">index.html</a> — отметки оттуда сразу появляются здесь.');
-    [].forEach.call(document.querySelectorAll('#tabs button'), function (b) { b.onclick = function () { st.tab = b.dataset.t; $('#drawer').classList.remove('on'); render(); window.scrollTo(0, 0); }; });
+    [].forEach.call(document.querySelectorAll('#tabs button, .rail button'), function (b) { b.onclick = function () { st.tab = b.dataset.t; $('#drawer').classList.remove('on'); render(); window.scrollTo(0, 0); }; });
     S.onChange(function () { var sc = window.scrollY; render(); window.scrollTo(0, sc); });
     render();
   }
