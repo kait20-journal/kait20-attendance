@@ -320,3 +320,14 @@ rect[fill="#e5483b"]{fill:#ff7a68}rect[fill="#7aa2f7"]{fill:#7fb5ff}
 .misscard .cl[style*="background:#fff1ef"]:hover{background:rgba(255,122,104,.3)!important}.misscard .cl[style*="background:#fff6dc"]:hover{background:rgba(255,210,122,.28)!important}
 .misscard [style*="border-top:1px solid var(--line)"]{border-top-color:rgba(255,255,255,.1)!important}
 .misscard span[style*="color:#b0241a"]{color:#ff9d90!important}.misscard span[style*="color:#8a5300"]{color:#ffd27a!important}
+/* задачи: статус виден с первого взгляда */
+.pill.wk{background:rgba(255,210,122,.18);color:#ffd27a;border:1px solid rgba(255,210,122,.4)}
+.pill.gr,.pill.red,.pill.amb{border:1px solid rgba(255,255,255,.12)}
+tr.tk>td:first-child{box-shadow:inset 4px 0 0 transparent;padding-left:12px}
+tr.tk-open>td:first-child,tr.tk-today>td:first-child{box-shadow:inset 4px 0 0 #ffd27a}
+tr.tk-late>td:first-child{box-shadow:inset 4px 0 0 #ff7a68}
+tr.tk-late{background:rgba(255,122,104,.07)}
+tr.tk-done>td:first-child{box-shadow:inset 4px 0 0 #8ff0b4}
+tr.tk-done>td{opacity:.62}tr.tk-done>td:last-child{opacity:1}
+tr.tk-done td b{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.45)}
+.chip b{margin-left:4px;opacity:.75}
