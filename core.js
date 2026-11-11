@@ -111,7 +111,8 @@
     who: function (v) { if (v !== undefined) { ov.who = v; save(); } return ov.who; },
     journal: function () { return ov.journal; },
     onChange: function (f) { listeners.push(f); },
-    reset: function () { ov = { marks: {}, journal: [], who: ov.who, days: {} }; save(); },
+    reset: function () { ov = { marks: {}, journal: [], who: ov.who, days: {}, tasks: ov.tasks || [] }; save(); },
+    tasks: function () { return REMOTE ? tasksR : (ov.tasks = ov.tasks || []); },
     /* сколько студентов группы отмечено на дату */
     rosterOn: function (g, d) { return g.all.filter(function (s) { return activeOn(s, d); }); },
     rosterIn: function (g, dates) { var a = dates[0], b = dates[dates.length - 1]; return g.all.filter(function (s) { return (!s.left || s.left >= a) && (!s.from || s.from <= b); }); },
@@ -128,7 +129,9 @@
     var o = {}; Object.keys(net.auth || {}).forEach(function (k) { o[k] = net.auth[k]; }); Object.keys(body).forEach(function (k) { o[k] = body[k]; });
     return G.fetch(CFG.api, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(o) }).then(function (r) { return r.json(); });
   }
+  var tasksR = [];
   function applyLoad(res) {
+    tasksR = res.tasks || [];
     seed.groups = res.groups; seed.marks = res.marks; ov.days = res.days || {}; if (res.journal) ov.journal = res.journal;
     net.v = res.v; net.role = res.role; net.name = res.name; ov.who = res.name; rebuild();
   }
@@ -197,6 +200,26 @@
   };
   Store.setCurator = function (gid, name) {
     return adminOp({ act: 'setCurator', gid: gid, curator: name }, function () { byId[gid].curator = name; });
+  };
+  /* ---------- задачи по кураторству ---------- */
+  function tid() { return 'T' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36); }
+  function taskOp(body, local) {
+    if (REMOTE) return post(body).then(function (r) { if (r.err) throw new Error(r.err === 'unknown act' ? 'сервер ещё не обновлён (нужен новый Code.gs)' : r.err); return refresh().then(function () { return r; }); });
+    ov.tasks = ov.tasks || []; local(ov.tasks); save(); return Promise.resolve({ ok: true });
+  }
+  Store.addTask = function (curators, title, desc, due) {
+    return taskOp({ act: 'taskAdd', curators: curators, title: title, desc: desc || '', due: due || '' }, function (L) {
+      curators.forEach(function (c) { L.push({ id: tid(), cur: c, title: title, desc: desc || '', due: due || '', created: today(), done: '' }); });
+    });
+  };
+  Store.editTask = function (id, title, desc, due) {
+    return taskOp({ act: 'taskEdit', id: id, title: title, desc: desc || '', due: due || '' }, function (L) { L.forEach(function (t) { if (t.id === id) { t.title = title; t.desc = desc || ''; t.due = due || ''; } }); });
+  };
+  Store.delTask = function (id) {
+    return taskOp({ act: 'taskDel', id: id }, function (L) { for (var i = L.length - 1; i >= 0; i--) if (L[i].id === id) L.splice(i, 1); });
+  };
+  Store.doneTask = function (id, flag) {
+    return taskOp({ act: 'taskDone', id: id, done: flag ? 1 : 0 }, function (L) { L.forEach(function (t) { if (t.id === id) t.done = flag ? today() : ''; }); });
   };
   Store.refresh = refresh;
   /* синхронизация вкладок: куратор отмечает — панель заведующей обновляется */
