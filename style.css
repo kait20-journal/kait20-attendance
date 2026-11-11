@@ -199,7 +199,7 @@ table.mx td.sum{background:rgba(255,255,255,.06)}
 .sheet,.modal{background:rgba(48,43,40,.94);color:#fff;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(28px)}
 .opt.sel{border-color:#fff}.until{background:rgba(255,255,255,.10)}
 .until input,.modal input[type=text],.modal input[type=password],.filters select,.filters input,.modal select,.modal textarea{background:rgba(255,255,255,.10);color:#fff;border:1px solid rgba(255,255,255,.22)}
-.filters select option,.modal select option{color:#12203a}
+.filters select option,.modal select option,select option,select optgroup{background:#2c2724!important;color:#fff!important}
 .filters input[type=date]{color-scheme:dark}
 .toast{background:rgba(255,255,255,.92);color:#12203a}
 .miss span{background:rgba(255,122,104,.28);color:#ffd3cc}
@@ -267,3 +267,8 @@ table.mx td.c{color:inherit}
 .calc b{color:#fff}
 .calc .xs{color:rgba(255,255,255,.72)!important}.calc .xs:not(.mut){color:#b9f7d0!important}
 .calc:hover{background:rgba(255,255,255,.24)!important}
+/* задачи, чекбоксы, выпадающие списки */
+input[type=checkbox]{width:auto!important;background:none!important;border:0!important;accent-color:#4c9bff;color-scheme:dark}
+.tkrow .btn{flex:none}
+.modal textarea{width:100%;font:inherit}
+.chips .chip.on{background:rgba(76,155,255,.35);border-color:rgba(76,155,255,.8);color:#fff}
