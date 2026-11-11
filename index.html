@@ -67,6 +67,28 @@
   $('#nameIn').onkeydown = function (e) { if (e.key === 'Enter') $('#nameOk').click(); };
   $('#whoBtn').onclick = function () { askName(true); };
 
+  /* ---------- кураторские задачи ---------- */
+  function myTasks() { var w = S.who(); return S.tasks().filter(function (t) { return K.REMOTE || t.cur === w; }); }
+  function tasksBlock() {
+    var all = myTasks(), open = all.filter(function (t) { return !t.done; }), done = all.filter(function (t) { return t.done; }), td = K.today();
+    if (!all.length) return '';
+    open.sort(function (a, b) { return (a.due || '9').localeCompare(b.due || '9'); });
+    var h = '<div class="card sec" style="margin:14px 0"><h3>Кураторские задачи <small>' + (open.length ? 'в работе: ' + open.length : 'всё выполнено') + '</small></h3>';
+    open.forEach(function (t) {
+      var late = t.due && t.due < td, today = t.due === td;
+      h += '<div class="tkrow" style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)"><div style="flex:1"><b>' + esc(t.title) + '</b>' + (t.desc ? '<div class="mut sm">' + esc(t.desc) + '</div>' : '') +
+        (t.due ? '<div class="xs" style="margin-top:3px;color:' + (late ? '#ff9a8f' : today ? '#ffd27a' : 'inherit') + '">' + (late ? 'Просрочено · ' : today ? 'Срок сегодня · ' : 'Срок: ') + K.fmtShort(t.due) + '</div>' : '') + '</div><button class="btn sm" data-tdone="' + t.id + '">✓ Выполнено</button></div>';
+    });
+    if (done.length) h += '<div style="margin-top:8px"><button class="btn ghost sm" id="tkShow">' + (st.showDone ? 'Скрыть выполненные' : 'Выполненные (' + done.length + ')') + '</button></div>' + (st.showDone ? done.map(function (t) { return '<div class="mut sm" style="padding:6px 0;border-top:1px solid var(--line)">✓ ' + esc(t.title) + ' · ' + K.fmtShort(t.done) + ' <button class="btn ghost sm" data-tback="' + t.id + '" style="margin-left:6px">Вернуть</button></div>'; }).join('') : '');
+    return h + '</div>';
+  }
+  function bindTasks() {
+    function fail(e) { UI.toast('Не удалось сохранить: ' + e.message); }
+    [].forEach.call(app.querySelectorAll('[data-tdone]'), function (b) { b.onclick = function () { S.doneTask(b.dataset.tdone, true).then(function () { UI.toast('Задача выполнена'); }).catch(fail); }; });
+    [].forEach.call(app.querySelectorAll('[data-tback]'), function (b) { b.onclick = function () { S.doneTask(b.dataset.tback, false).catch(fail); }; });
+    var sh = document.getElementById('tkShow'); if (sh) sh.onclick = function () { st.showDone = !st.showDone; render(); };
+  }
+
   /* ---------- главный экран ---------- */
   function home() {
     var di = S.dayInfo(st.date), mine = myGroups(); if (!mine.length) st.mine = false;
@@ -76,6 +98,7 @@
       '<div class="mrow"><span class="sm mut">Дата:</span><input type="date" id="dsel" value="' + st.date + '" style="border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:#fff">' +
       '<button class="btn ghost sm" id="dtoday">Сегодня</button></div>';
     if (di.off) h += '<div class="card" style="margin:10px 0;background:#f1f3f8"><b>🗓 ' + K.fmtLong(st.date) + ' — ' + esc(di.label || 'выходной день') + '.</b> <span class="mut">Отметки закрыты. Выберите учебный день.</span></div>';
+    h += tasksBlock();
     h += '<div class="chips" style="margin-top:12px">' + (mine.length ? '<button class="chip' + (st.mine ? ' on' : '') + '" data-c="m">Мои группы (' + mine.length + ')</button>' : '') + courses.map(function (c) { return '<button class="chip' + (!st.mine && st.course === c ? ' on' : '') + '" data-c="' + c + '">' + (c ? c + ' курс' : 'Все группы') + '</button>'; }).join('') + '</div>';
     h += '<div class="grid">' + groups.map(function (g) {
       var n = S.rosterOn(g, st.date).length, m = di.off ? 0 : S.marked(g.id, st.date), done = m === n, pct = n ? Math.round(m / n * 100) : 0;
@@ -84,6 +107,7 @@
         '<div class="state ' + (done ? 'ok' : '') + '">' + (di.off ? 'Выходной' : done ? '✓ Отмечено полностью' : m ? 'Отмечено ' + m + ' из ' + n : 'Не отмечено') + '</div></button>';
     }).join('') + '</div>';
     app.innerHTML = h;
+    bindTasks();
     $('#dsel').onchange = function (e) { if (e.target.value) { st.date = e.target.value; st.ym = st.date.slice(0, 7); render(); } };
     $('#dtoday').onclick = function () { st.date = lastWork(K.today()); st.ym = st.date.slice(0, 7); render(); };
     [].forEach.call(app.querySelectorAll('.chip'), function (b) { b.onclick = function () { if (b.dataset.c === 'm') { st.mine = true; st.course = 0; } else { st.mine = false; st.course = +b.dataset.c; } render(); }; });
