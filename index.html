@@ -11,6 +11,7 @@
 <div class="top"><div class="wrap">
   <div class="brand"><div class="logo">К20</div><div>КАИТ-20 · Посещаемость<small>Журнал куратора</small></div></div>
   <div class="sp"></div>
+  <button class="who" id="helpBtn" title="Как пользоваться" aria-label="Как пользоваться" style="margin-right:6px">?<span class="hl"> Помощь</span></button>
   <button class="who" id="whoBtn">Представьтесь</button>
 </div></div>
 <div class="demo" id="demo"></div>
@@ -53,6 +54,21 @@
   /* ---------- имя ---------- */
   function who() { var w = S.who(); $('#whoBtn').textContent = w ? '👤 ' + K.shortName(w) : 'Представьтесь'; return w; }
   function myGroups() { if (K.REMOTE) return S.groups().map(function (g) { return g.id; }); var w = S.who(), c = S.curators().filter(function (x) { return x.name === w; })[0]; return c ? c.groups : []; }
+  function helpModal() {
+    var ov = document.createElement('div'); ov.className = 'ov on'; ov.style.alignItems = 'center'; ov.style.zIndex = 90;
+    ov.innerHTML = '<div class="modal" style="max-height:92vh;overflow:auto"><h3>Как пользоваться журналом</h3><ol style="margin:10px 0 0;padding-left:20px;line-height:1.5;font-size:14px">' +
+      '<li><b>Откройте свою группу</b> на главной (вкладка «Мои группы»).</li>' +
+      '<li><b>Отметьте день.</b> Зелёная ✓ рядом со студентом — присутствует. Нажмите на статус, чтобы выбрать причину отсутствия: н — неуважительная, б — больничный, з — заявление, п — по приказу, о — опоздание, и — ИУП, р — практика.</li>' +
+      '<li><b>Быстрее:</b> кнопка «✓ Все присутствуют», затем поправьте тех, кого нет.</li>' +
+      '<li><b>Другой день</b> — полоска с числами над списком. «Табель за месяц» — вся таблица: нажмите на клетку, чтобы изменить отметку.</li>' +
+      '<li><b>Ошиблись?</b> Кнопка «↩ Отменить» возвращает предыдущую отметку.</li>' +
+      '<li><b>Выходные и дистанционное обучение</b> проставляет заведующая в календаре; в выходные отметки закрыты.</li>' +
+      '<li><b>Задачи и мероприятия</b> от заведующей — на главной странице. Сделали — нажмите «Выполнено».</li>' +
+      '</ol><div class="mut sm" style="margin-top:10px">Всё сохраняется автоматически. Ваша ссылка личная — не пересылайте её другим.</div><button class="btn" id="helpOk" style="width:100%;margin-top:14px">Понятно</button></div>';
+    document.body.appendChild(ov); ov.querySelector('#helpOk').onclick = function () { ov.remove(); };
+    ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
+    try { localStorage.setItem('kait.help.seen', '1'); } catch (e) {}
+  }
   function askName(force) {
     if (S.who() && !force) return;
     var sel = $('#nameSel'), cur = S.who();
@@ -67,6 +83,7 @@
   };
   $('#nameIn').onkeydown = function (e) { if (e.key === 'Enter') $('#nameOk').click(); };
   $('#whoBtn').onclick = function () { askName(true); };
+  $('#helpBtn').onclick = helpModal;
 
   /* ---------- кураторские задачи ---------- */
   function myTasks() { var w = S.who(); return S.tasks().filter(function (t) { return K.REMOTE || t.cur === w; }); }
@@ -133,7 +150,7 @@
     var g = S.group(st.gid), p = st.ym.split('-'), y = +p[0], m = +p[1] - 1, dates = K.monthDates(y, m, false);
     var h = '<div class="crumb"><button class="back" id="back">← Все группы</button><h2>' + esc(g.name) + '</h2><span class="mut sm">' + g.course + ' курс · ' + g.students.length + ' студ.' + (g.curator ? ' · куратор ' + esc(K.shortName(g.curator)) : '') + '</span><div class="sp" style="flex:1"></div>' +
       '<div class="tabs"><button data-v="day" class="' + (st.view === 'day' ? 'on' : '') + '">День</button><button data-v="month" class="' + (st.view === 'month' ? 'on' : '') + '">Табель за месяц</button></div></div>';
-    h += '<div class="mrow"><button class="btn ghost sm" id="mp">‹</button><b style="min-width:130px;text-align:center">' + K.MONTHS[m] + ' ' + y + '</b><button class="btn ghost sm" id="mn">›</button></div>';
+    h += '<div class="mrow"><button class="btn ghost sm" id="mp">‹</button><b style="min-width:130px;text-align:center">' + K.MONTHS[m] + ' ' + y + '</b><button class="btn ghost sm" id="mn">›</button><span style="flex:1"></span><button class="btn ghost sm" id="undo"' + (S.canUndo() ? '' : ' disabled') + '>↩ Отменить</button></div>';
     if (st.view === 'day') {
       h += '<div class="datebar" id="dbar">' + dates.map(function (d) {
         var dt = K.parse(d), di = S.dayInfo(d), mk = di.off ? 0 : S.marked(g.id, d), cls = 'dpill' + (d === st.date ? ' on' : '') + (di.off ? ' wk' : '') + (!di.off && mk === S.rosterOn(g, d).length ? ' done' : !di.off && mk ? ' part' : '');
@@ -158,6 +175,7 @@
     app.innerHTML = h;
     $('#back').onclick = function () { st.gid = null; render(); };
     $('#mp').onclick = function () { monthShift(-1); render(); }; $('#mn').onclick = function () { monthShift(1); render(); };
+    $('#undo').onclick = function () { var n = S.undoLast(); UI.toast(n ? 'Отменено отметок: ' + n : 'Нечего отменять'); };
     [].forEach.call(app.querySelectorAll('.tabs button'), function (b) { b.onclick = function () { st.view = b.dataset.v; render(); }; });
     if (st.view === 'day') {
       var bar = $('#dbar'), on = bar.querySelector('.on'); if (on) bar.scrollLeft = on.offsetLeft - 90;
@@ -177,7 +195,7 @@
   window.addEventListener('hashchange', function () { hashRead(); render(); });
 
   UI.demoBar($('#demo'));
-  function boot() { hashRead(); render(); if (!K.REMOTE) askName(false); }
+  function boot() { hashRead(); render(); if (!K.REMOTE) askName(false); else { try { if (!localStorage.getItem('kait.help.seen')) setTimeout(helpModal, 700); } catch (e) {} } }
   if (!K.REMOTE) boot();
   else {
     var tok = ''; try { tok = new URLSearchParams(location.search).get('k') || sessionStorage.getItem('kait20-k') || ''; } catch (e) {}
