@@ -331,3 +331,11 @@ tr.tk-done>td:first-child{box-shadow:inset 4px 0 0 #8ff0b4}
 tr.tk-done>td{opacity:.62}tr.tk-done>td:last-child{opacity:1}
 tr.tk-done td b{text-decoration:line-through;text-decoration-color:rgba(255,255,255,.45)}
 .chip b{margin-left:4px;opacity:.75}
+/* мобильная версия */
+@media(max-width:640px){
+  #helpBtn .hl{display:none}#helpBtn{flex:0 0 auto;padding-left:14px;padding-right:14px}
+  .top .brand small{display:none}.top .wrap{gap:6px}
+  table.mx .nm{min-width:118px;max-width:118px;font-size:12px;padding:0 6px}table.mx td.c,table.mx thead th{min-width:28px}
+  .modal{max-height:94vh}.btn{min-height:40px}.sumbar{gap:10px}
+  .mrow{gap:6px}.row .nm{font-size:15px}
+}
