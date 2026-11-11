@@ -83,6 +83,18 @@
     if (done.length) h += '<div style="margin-top:8px"><button class="btn ghost sm" id="tkShow">' + (st.showDone ? 'Скрыть выполненные' : 'Выполненные (' + done.length + ')') + '</button></div>' + (st.showDone ? done.map(function (t) { return '<div class="mut sm" style="padding:6px 0;border-top:1px solid var(--line)">✓ ' + esc(t.title) + ' · ' + K.fmtShort(t.done) + ' <button class="btn ghost sm" data-tback="' + t.id + '" style="margin-left:6px">Вернуть</button></div>'; }).join('') : '');
     return h + '</div>';
   }
+  function modeCard(di) {
+    if (!di.mode) return '';
+    var el = di.mode === 'elearn';
+    return '<div class="card" style="margin:10px 0;background:' + (el ? 'rgba(255,210,122,.2)' : 'rgba(110,190,255,.22)') + '"><b>' + (el ? '📚 Электронное обучение' : '💻 Дистанционное обучение') + '</b> <span class="mut">— ' + (el ? 'студенты выполняют задания дома, пар нет.' : 'студенты подключаются к парам из дома.') + '</span></div>';
+  }
+  function eventsBlock() {
+    var td = K.today(), list = S.eventsFor(S.who()).filter(function (e) { return e.date >= td; }).sort(function (a, b) { return a.date.localeCompare(b.date); }).slice(0, 6);
+    if (!list.length) return '';
+    return '<div class="card sec" style="margin:14px 0"><h3>Кураторские мероприятия <small>ближайшие</small></h3>' + list.map(function (e) {
+      return '<div style="padding:9px 0;border-top:1px solid var(--line)"><b>' + esc(e.title) + '</b> <span class="mut">· ' + K.fmtLong(e.date) + '</span>' + (e.desc ? '<div class="mut sm">' + esc(e.desc) + '</div>' : '') + (e.courses && e.courses.length ? '<div class="xs mut">Курсы: ' + e.courses.join(', ') + '</div>' : '') + '</div>';
+    }).join('') + '</div>';
+  }
   function bindTasks() {
     function fail(e) { UI.toast('Не удалось сохранить: ' + e.message); }
     [].forEach.call(app.querySelectorAll('[data-tdone]'), function (b) { b.onclick = function () { S.doneTask(b.dataset.tdone, true).then(function () { UI.toast('Задача выполнена'); }).catch(fail); }; });
@@ -99,7 +111,7 @@
       '<div class="mrow"><span class="sm mut">Дата:</span><input type="date" id="dsel" value="' + st.date + '" style="border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:#fff">' +
       '<button class="btn ghost sm" id="dtoday">Сегодня</button></div>';
     if (di.off) h += '<div class="card" style="margin:10px 0;background:#f1f3f8"><b>🗓 ' + K.fmtLong(st.date) + ' — ' + esc(di.label || 'выходной день') + '.</b> <span class="mut">Отметки закрыты. Выберите учебный день.</span></div>';
-    h += tasksBlock();
+    h += modeCard(di) + tasksBlock() + eventsBlock();
     h += '<div class="chips" style="margin-top:12px">' + (mine.length ? '<button class="chip' + (st.mine ? ' on' : '') + '" data-c="m">Мои группы (' + mine.length + ')</button>' : '') + courses.map(function (c) { return '<button class="chip' + (!st.mine && st.course === c ? ' on' : '') + '" data-c="' + c + '">' + (c ? c + ' курс' : 'Все группы') + '</button>'; }).join('') + '</div>';
     h += '<div class="grid">' + groups.map(function (g) {
       var n = S.rosterOn(g, st.date).length, m = di.off ? 0 : S.marked(g.id, st.date), done = m === n, pct = n ? Math.round(m / n * 100) : 0;
@@ -132,6 +144,7 @@
       h += '<div class="sumbar"><div><div class="n">' + K.fmtLong(st.date) + '</div></div>' +
         (di.off ? '' : '<div><span>присутствуют</span><div class="n" style="color:var(--plus)">' + cnt.p + '</div></div><div><span>отсутствуют</span><div class="n" style="color:var(--nev)">' + cnt.a + '</div></div><div><span>не отмечено</span><div class="n">' + cnt.n + '</div></div>' +
         '<button class="btn sm" id="allp"' + (cnt.n ? '' : ' disabled') + '>✓ Все присутствуют</button>') + '</div>';
+      if (di.mode) h += modeCard(di);
       if (di.off) h += '<div class="card" style="background:#f1f3f8;margin-bottom:12px"><b>🗓 ' + esc(di.label || 'Выходной день') + '</b> <span class="mut">— отметки закрыты заведующей отделением.</span></div>';
       h += '<div class="list">' + S.rosterOn(g, st.date).map(function (s, i) {
         var v = S.get(g.id, s.id, st.date), c = v ? K.CODES[v] : null;
