@@ -35,6 +35,7 @@
   <div class="tabs" id="tabs" style="background:rgba(255,255,255,.12)">
     <button data-t="dash" class="on" style="color:#fff">Дашборд</button><button data-t="an" style="color:#cfe0ff">Аналитика</button><button data-t="tk" style="color:#cfe0ff">Задачи</button><button data-t="cal" style="color:#cfe0ff">Календарь дней</button><button data-t="ros" style="color:#cfe0ff">Состав групп</button><button data-t="log" style="color:#cfe0ff">Журнал</button>
   </div>
+  <button class="btn ghost sm" id="helpA" title="Как пользоваться" style="margin-left:8px">? Помощь</button>
 </div></div>
 <div class="demo" id="demo"></div>
 <main class="wrap" id="app"></main>
@@ -330,7 +331,7 @@
   /* ---------- календарь дней ---------- */
   function cal() {
     var p = st.calYm.split('-'), y = +p[0], m = +p[1] - 1, first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, dates = K.monthDates(y, m, false);
-    var h = '<div class="hero"><h1>Календарь учебных дней</h1><p>Отметьте выходные и праздники: в такие дни кураторы не смогут ставить отметки, а дни не попадут в статистику. Субботу можно сделать учебной.</p></div>' +
+    var h = '<div class="hero"><h1>Календарь учебных дней</h1><p>Отметьте выходные и праздники: в такие дни кураторы не смогут ставить отметки, а дни не попадут в статистику. Субботу можно сделать учебной. Государственные праздники и переносы по производственному календарю РФ проставлены автоматически, каникулы колледжа отметьте выбором диапазона дней.</p></div>' +
       '<div class="cols two"><div class="card sec"><div class="mrow"><button class="btn ghost sm" id="cp">‹</button><b style="min-width:140px;text-align:center">' + K.MONTHS[m] + ' ' + y + '</b><button class="btn ghost sm" id="cn">›</button></div>' +
       '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px">' + ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(function (d) { return '<div class="xs mut" style="text-align:center">' + d + '</div>'; }).join('');
     for (var i = 0; i < lead; i++) h += '<div></div>';
@@ -421,9 +422,10 @@
   function roster() {
     var gs = S.groups(); if (!st.rg || !S.group(st.rg)) st.rg = gs[0] ? gs[0].id : '';
     var g = S.group(st.rg), t = K.today();
-    var h = '<div class="hero"><h1>Состав групп</h1><p>Добавляйте новых студентов, отмечайте выбывших, переводите между группами и меняйте куратора. История отметок сохраняется.</p></div><div class="card sec">';
+    var h = '<div class="hero"><h1>Состав групп</h1><p>Добавляйте новых студентов, отмечайте выбывших, переводите между группами и меняйте куратора. История отметок сохраняется.</p></div>' +
+      '<div class="card sec"><h3>Списки и учебный год</h3><div class="mut sm">Загрузите список групп из Excel (лист = группа, либо колонки «Группа» и «ФИО», при желании «Куратор») — новые группы и студенты добавятся, уже имеющиеся не задвоятся. В начале года нажмите «Новый учебный год».</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="rimp">📥 Загрузить списки из Excel</button><button class="btn ghost" id="rtpl">Скачать шаблон Excel</button><button class="btn ghost" id="rroll">🎓 Новый учебный год</button></div></div><div class="card sec">';
     h += '<div class="filters" style="margin:0 0 12px"><label>Группа<select id="rg">' + gs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === st.rg ? ' selected' : '') + '>' + esc(x.name) + ' · ' + x.course + ' курс</option>'; }).join('') + '</select></label></div>';
-    if (!g) { app.innerHTML = h + '<div class="empty">Групп нет.</div></div>'; return; }
+    if (!g) { app.innerHTML = h + '<div class="empty">Групп нет.</div></div>'; bindTools(); return; }
     var act = g.all.filter(function (s) { return !s.left || s.left >= t; }), gone = g.all.filter(function (s) { return s.left && s.left < t; });
     h += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><div><span class="mut sm">Куратор:</span> <b>' + (g.curator ? esc(g.curator) : '— не назначен —') + '</b></div><button class="btn ghost sm" id="rcur">Сменить куратора</button>' + (K.REMOTE && g.curator ? '<button class="btn ghost sm" id="rlink">Ссылка куратора</button>' : '') + '</div>';
     h += '<h3>Студенты <small>' + act.length + '</small></h3><table class="tb"><tbody>' + act.map(function (s, i) {
@@ -432,7 +434,7 @@
     h += '<div style="margin-top:12px"><button class="btn" id="radd">+ Добавить студента</button></div>';
     if (gone.length) h += '<h3 style="margin-top:20px">Выбывшие <small>' + gone.length + '</small></h3><table class="tb"><tbody>' + gone.map(function (s) { return '<tr><td>' + esc(s.fio) + '</td><td class="mut">до ' + fmtD(s.left) + '</td><td style="text-align:right"><button class="btn ghost sm" data-a="back" data-s="' + s.id + '">Вернуть</button></td></tr>'; }).join('') + '</tbody></table>';
     h += '</div>';
-    if (K.REMOTE) h += '<div class="card sec"><h3>Личные ссылки кураторов</h3><div class="mut sm">Каждый куратор открывает журнал только по своей ссылке — пароль не нужен. Ссылку видите только вы.</div><div style="margin-top:10px"><button class="btn ghost sm" id="rlinks">Показать все ссылки</button></div><div id="llist"></div></div>';
+    if (K.REMOTE) h += '<div class="card sec"><h3>Личные ссылки кураторов</h3><div class="mut sm">Каждый куратор открывает журнал только по своей ссылке — пароль не нужен. Ссылку видите только вы. Если ссылка попала не туда, нажмите «Сменить»: старая сразу перестанет работать.</div><div style="margin-top:10px"><button class="btn ghost sm" id="rlinks">Показать ссылки</button></div><div id="llist"></div></div>';
     app.innerHTML = h;
     $('#rg').onchange = function (e) { st.rg = e.target.value; roster(); };
     function done(p, msg) { return p.then(function () { UI.toast(msg); roster(); }).catch(function (e) { UI.toast('Ошибка: ' + e.message); }); }
@@ -446,7 +448,7 @@
       });
     };
     var lk = $('#rlink'); if (lk) lk.onclick = function () { showLinks(g.curator); };
-    var rl = $('#rlinks'); if (rl) rl.onclick = function () { showLinks(); };
+    bindTools();
     [].forEach.call(app.querySelectorAll('[data-a]'), function (b) {
       b.onclick = function () {
         var sid = b.dataset.s, o = S.student(sid).s, a = b.dataset.a;
@@ -456,6 +458,99 @@
         else if (a === 'back') done(S.restoreStudent(sid), 'Студент возвращён');
       };
     });
+  }
+  function mkModal(html, wide) { var ov = document.createElement('div'); ov.className = 'ov on'; ov.style.zIndex = 90; ov.style.alignItems = 'center'; ov.innerHTML = '<div class="modal" style="max-height:92vh;overflow:auto;' + (wide ? 'max-width:760px;width:94vw' : '') + '">' + html + '</div>'; document.body.appendChild(ov); return ov; }
+  function saveBlob(bytes, name, type) {
+    var blob = new Blob([bytes], { type: type || 'application/octet-stream' }), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); UI.toast('Файл скачан');
+  }
+  var XLSX_T = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  function dayBeforeD(d) { var x = K.parse(d); x.setDate(x.getDate() - 1); return K.iso(x); }
+  function rollId(id, course) { var m = /^(\D+)(\d)(.*)$/.exec(id); return m && +m[2] === course ? m[1] + (course + 1) + m[3] : id; }
+  function bindTools() {
+    var a = $('#rimp'), b = $('#rtpl'), c = $('#rroll'), l = $('#rlinks');
+    if (a) a.onclick = function () {
+      var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.xlsx,.csv,.tsv,.txt';
+      inp.onchange = function () {
+        var f = inp.files[0]; if (!f) return;
+        K.readSheets(f).then(function (sh) { var gs = K.parseRoster(sh, f.name.replace(/\.[^.]+$/, '')); if (!gs.length) UI.toast('Не нашёл в файле ФИО студентов. Возьмите шаблон: колонки «Группа» и «ФИО».'); else importPreview(gs); }).catch(function (e) { UI.toast('Ошибка чтения файла: ' + e.message); });
+      };
+      inp.click();
+    };
+    if (b) b.onclick = function () {
+      var rows = [['Группа', 'ФИО', 'Куратор'], ['СА152', 'Иванов Иван Иванович', 'Петрова Мария Сергеевна'], ['СА152', 'Сидоров Пётр Петрович', ''], ['ИИ112', 'Смирнова Анна Олеговна', 'Кузнецов Олег Игоревич']];
+      saveBlob(K.buildXlsx([{ name: 'Список', rows: rows, widths: [12, 38, 34], headerRows: 1 }]), 'Шаблон_списки_групп.xlsx', XLSX_T);
+    };
+    if (c) c.onclick = rollFlow;
+    if (l) l.onclick = linksPanel;
+  }
+  function importPreview(groups) {
+    var t = K.today(), info = groups.map(function (g) {
+      var ex = S.group(g.id), have = {}; if (ex) ex.all.forEach(function (x) { if (!x.left) have[K.normFio(x.fio)] = 1; });
+      var inFile = {}; g.students.forEach(function (f) { inFile[K.normFio(f)] = 1; });
+      var fresh = g.students.filter(function (f) { return !have[K.normFio(f)]; }).length;
+      var miss = ex ? ex.all.filter(function (x) { return !x.left && !inFile[K.normFio(x.fio)]; }).length : 0;
+      return { g: g, ex: ex, fresh: fresh, same: g.students.length - fresh, miss: miss };
+    });
+    var totMiss = info.reduce(function (n, x) { return n + x.miss; }, 0), totNew = info.reduce(function (n, x) { return n + x.fresh; }, 0);
+    var fs = 'border:1px solid var(--line);border-radius:9px;padding:6px 9px;font:inherit;width:100%';
+    var ov = mkModal('<h3>Загрузка списков: проверьте перед добавлением</h3><div class="mut sm">Найдено групп: ' + info.length + ', новых студентов: ' + totNew + '. Ничего не удаляется: отметки сохраняются.</div>' +
+      '<table class="tb" style="margin-top:10px"><thead><tr><th>Группа</th><th>Куратор</th><th>В файле</th><th>Новых</th><th></th></tr></thead><tbody>' + info.map(function (x, i) {
+        return '<tr><td><b>' + esc(x.g.id) + '</b><div class="xs mut">' + x.g.course + ' курс</div></td><td><input data-cur="' + i + '" value="' + esc(x.g.curator) + '" style="' + fs + '" placeholder="не указан"></td><td>' + x.g.students.length + '</td><td><b>' + x.fresh + '</b></td><td><span class="pill ' + (x.ex ? 'wk' : 'gr') + '">' + (x.ex ? 'уже есть' : 'новая группа') + '</span></td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<label class="sm mut" style="display:block;margin-top:12px">Дата зачисления новых студентов<input id="impFrom" type="date" value="' + t + '" style="' + fs + ';max-width:200px;display:block;margin-top:4px"></label>' +
+      '<label style="display:flex;gap:8px;align-items:center;margin-top:12px" class="sm"><input type="checkbox" id="impSync"' + (totMiss ? '' : ' disabled') + '> Отметить выбывшими тех, кого нет в файле (сейчас таких: ' + totMiss + ')</label>' +
+      '<div class="acts" style="display:flex;gap:8px;margin-top:16px"><button class="btn ghost" id="impNo" style="flex:1">Отмена</button><button class="btn" id="impOk" style="flex:1">Добавить в систему</button></div>', true);
+    ov.querySelector('#impNo').onclick = function () { ov.remove(); };
+    ov.querySelector('#impOk').onclick = function () {
+      var from = ov.querySelector('#impFrom').value || t, btn = ov.querySelector('#impOk'); btn.disabled = true; btn.textContent = 'Сохраняю…';
+      var payload = info.map(function (x, i) { var g = x.g; return { id: g.id, course: g.course, spec: g.spec, curator: (ov.querySelector('[data-cur="' + i + '"]').value || '').trim(), students: g.students }; });
+      S.bulkRoster(payload, { from: from, left: dayBeforeD(from), sync: ov.querySelector('#impSync').checked }).then(function (r) {
+        ov.remove(); var c = r.cnt || {}; UI.toast('Готово: групп +' + (c.groups || 0) + ', студентов +' + (c.added || 0) + (c.left ? ', выбыло ' + c.left : '')); roster();
+      }).catch(function (e) { btn.disabled = false; btn.textContent = 'Добавить в систему'; UI.toast('Ошибка: ' + e.message); });
+    };
+  }
+  function rollFlow() {
+    var gs = S.groups().slice().sort(function (a, b) { return a.id.localeCompare(b.id, 'ru'); }), fs = 'border:1px solid var(--line);border-radius:9px;padding:6px 9px;font:inherit;width:110px';
+    var ov = mkModal('<h3>🎓 Новый учебный год</h3><div class="mut sm">Каждая группа переходит на следующий курс, у групп последнего курса ставьте галочку «выпуск» — они уходят в архив (данные остаются в таблице). Номер группы меняется вместе с курсом, его можно поправить вручную. Перед началом автоматически создаётся копия списков внутри таблицы. Отметки не удаляются.</div>' +
+      '<table class="tb" style="margin-top:10px"><thead><tr><th>Сейчас</th><th>Курс</th><th>Выпуск</th><th>Станет</th></tr></thead><tbody>' + gs.map(function (g, i) {
+        var grad = g.course >= 4;
+        return '<tr><td><b>' + esc(g.id) + '</b></td><td>' + g.course + ' → ' + (g.course + 1) + '</td><td><input type="checkbox" data-gr="' + i + '"' + (grad ? ' checked' : '') + '></td><td><input data-to="' + i + '" value="' + esc(rollId(g.id, g.course)) + '" style="' + fs + '"' + (grad ? ' disabled' : '') + '></td></tr>';
+      }).join('') + '</tbody></table><div class="acts" style="display:flex;gap:8px;margin-top:16px"><button class="btn ghost" id="rlNo" style="flex:1">Отмена</button><button class="btn" id="rlOk" style="flex:1">Перевести на новый год</button></div>', true);
+    [].forEach.call(ov.querySelectorAll('[data-gr]'), function (c) { c.onchange = function () { ov.querySelector('[data-to="' + c.dataset.gr + '"]').disabled = c.checked; }; });
+    ov.querySelector('#rlNo').onclick = function () { ov.remove(); };
+    ov.querySelector('#rlOk').onclick = function () {
+      var items = gs.map(function (g, i) { return { id: g.id, grad: ov.querySelector('[data-gr="' + i + '"]').checked, to: (ov.querySelector('[data-to="' + i + '"]').value || g.id).trim() }; });
+      var ng = items.filter(function (x) { return x.grad; }).length, seen = {}, dup = '';
+      items.forEach(function (x) { if (!x.grad) { if (seen[x.to]) dup = x.to; seen[x.to] = 1; } });
+      if (dup) { UI.toast('Номер «' + dup + '» повторяется: поправьте'); return; }
+      UI.ask('Перевести ' + (items.length - ng) + ' групп на следующий курс и отправить в архив ' + ng + '? Это нужно делать один раз в год.', 'Да, перевести').then(function (ok) {
+        if (!ok) return; var btn = ov.querySelector('#rlOk'); btn.disabled = true; btn.textContent = 'Выполняю…';
+        S.rollYear(items).then(function (r) { ov.remove(); st.rg = ''; UI.toast('Готово: переведено ' + (r.moved || 0) + ', выпуск ' + (r.grads || 0) + '. Теперь загрузите списки первокурсников.'); roster(); }).catch(function (e) { btn.disabled = false; btn.textContent = 'Перевести на новый год'; UI.toast('Ошибка: ' + e.message); });
+      });
+    };
+  }
+  function linkBase() { return new URL('index.html', location.href).href; }
+  function copyText(text, title) {
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(function () { UI.toast('Скопировано'); }, function () { UI.copyBox(title, text); }); return; } } catch (e) {}
+    UI.copyBox(title, text);
+  }
+  function linksPanel() {
+    var box = $('#llist'); box.innerHTML = '<div class="mut sm" style="margin-top:10px">Загружаю…</div>';
+    K.Net.tokens().then(function (tk) { drawLinks(tk); }).catch(function () { box.innerHTML = '<div class="mut sm" style="margin-top:10px">Не удалось получить ссылки</div>'; });
+  }
+  function drawLinks(tk) {
+    var box = $('#llist'), base = linkBase(); tk = tk.slice().sort(function (a, b) { return a[0].localeCompare(b[0], 'ru'); });
+    var grp = function (c) { return S.groups().filter(function (g) { return g.curator === c; }).map(function (g) { return g.name; }).join(', '); };
+    box.innerHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="btn sm" id="lkAll">Скопировать все ссылки списком</button><button class="btn ghost sm" id="lkXl">Скачать Excel со ссылками</button></div>' +
+      '<table class="tb"><tbody>' + tk.map(function (x, i) { return '<tr><td><b>' + esc(K.shortName(x[0])) + '</b><div class="xs mut">' + esc(grp(x[0]) || 'без группы') + '</div></td><td style="text-align:right;white-space:nowrap"><button class="btn ghost sm" data-lc="' + i + '">Скопировать ссылку</button> <button class="btn ghost sm" data-lr="' + i + '">Сменить</button></td></tr>'; }).join('') + '</tbody></table>';
+    $('#lkAll').onclick = function () { copyText(tk.map(function (x) { return x[0] + ' — ' + base + '?k=' + x[1]; }).join('\n'), 'Ссылки кураторов'); };
+    $('#lkXl').onclick = function () { saveBlob(K.buildXlsx([{ name: 'Ссылки', rows: [['Куратор', 'Группы', 'Ссылка']].concat(tk.map(function (x) { return [x[0], grp(x[0]), base + '?k=' + x[1]]; })), widths: [34, 22, 70], headerRows: 1 }]), 'Ссылки_кураторов.xlsx', XLSX_T); };
+    [].forEach.call(box.querySelectorAll('[data-lc]'), function (b) { b.onclick = function () { var x = tk[+b.dataset.lc]; copyText(base + '?k=' + x[1], 'Ссылка куратора ' + x[0]); }; });
+    [].forEach.call(box.querySelectorAll('[data-lr]'), function (b) { b.onclick = function () {
+      var x = tk[+b.dataset.lr]; UI.ask('Сменить ссылку куратору ' + x[0] + '? Старая ссылка сразу перестанет работать, новую нужно будет отправить куратору.', 'Сменить').then(function (ok) {
+        if (ok) S.resetToken(x[0]).then(function (t2) { UI.toast('Новая ссылка создана'); drawLinks(t2); }).catch(function (e) { UI.toast('Ошибка: ' + e.message); });
+      });
+    }; });
   }
   function showLinks(only) {
     var base = new URL('index.html', location.href).href;
@@ -531,14 +626,32 @@
   function log() {
     var j = S.journal().slice(0, 150), h = '<div class="hero"><h1>Журнал изменений</h1><p>Кто и когда менял отметки и календарь. Последние 150 записей.</p></div><div class="card sec">';
     if (!j.length) h += '<div class="empty">Пока изменений нет. Откройте страницу куратора и отметьте любую группу — запись появится здесь.</div>';
-    else h += '<table class="tb"><thead><tr><th>Когда</th><th>Кто</th><th>Что изменено</th></tr></thead><tbody>' + j.map(function (e) {
+    else h += '<table class="tb"><thead><tr><th>Когда</th><th>Кто</th><th>Что изменено</th><th></th></tr></thead><tbody>' + j.map(function (e) {
       var t = new Date(e.t), when = K.pad(t.getDate()) + '.' + K.pad(t.getMonth() + 1) + ' ' + K.pad(t.getHours()) + ':' + K.pad(t.getMinutes()), what;
       if (e.note) what = '✏ ' + esc(e.note) + (e.sid && S.student(e.sid) ? '' : '');
       else if (e.day) what = '🗓 ' + K.fmtShort(e.day) + ': ' + (e.dayType === 'off' ? 'выходной' : e.dayType === 'work' ? 'учебный день' : e.dayType === 'elearn' ? 'электронное обучение' : e.dayType === 'remote' ? 'дистанционное обучение' : 'по умолчанию') + (e.label ? ' · ' + esc(e.label) : '');
       else { var x = S.student(e.sid); what = esc(x ? K.shortName(x.s.fio) : e.sid) + ' <span class="mut">(' + esc(e.gid || (x ? x.g.id : '')) + ')</span> · ' + K.fmtShort(e.date) + ': ' + UI.st(e.prev || '', e.prev === '+' ? '✓' : e.prev) + ' → ' + UI.st(e.code || '', e.code === '+' ? '✓' : e.code); }
-      return '<tr><td class="mut" style="white-space:nowrap">' + when + '</td><td>' + esc(e.who) + '</td><td>' + what + '</td></tr>';
+      var x2 = e.sid && !e.note && !e.day ? S.student(e.sid) : null, can = x2 && e.date && !e.undone && S.get(x2.g.id, e.sid, e.date) === (e.code || '') && (e.prev || '') !== (e.code || '');
+      return '<tr><td class="mut" style="white-space:nowrap">' + when + '</td><td>' + esc(e.who) + '</td><td>' + what + '</td><td style="text-align:right">' + (can ? '<button class="btn ghost sm" data-undo="' + e.t + '|' + e.sid + '|' + e.date + '">↩ Отменить</button>' : '') + '</td></tr>';
     }).join('') + '</tbody></table>';
     app.innerHTML = h + '</div>';
+    [].forEach.call(app.querySelectorAll('[data-undo]'), function (b) { b.onclick = function () {
+      var q = b.dataset.undo.split('|'), e = S.journal().filter(function (z) { return String(z.t) === q[0] && z.sid === q[1] && z.date === q[2]; })[0], x = e && S.student(e.sid); if (!x) return;
+      S.set(x.g.id, e.sid, e.date, e.prev || '', 'Заведующая (отмена правки)'); UI.toast('Отметка возвращена'); log();
+    }; });
+  }
+
+  function helpAdmin() {
+    var ov = document.createElement('div'); ov.className = 'ov on'; ov.style.alignItems = 'center'; ov.style.zIndex = 90;
+    ov.innerHTML = '<div class="modal" style="max-height:92vh;overflow:auto"><h3>Как пользоваться панелью</h3><ul style="margin:10px 0 0;padding-left:20px;line-height:1.5;font-size:14px">' +
+      '<li><b>Дашборд</b> — сегодняшняя картина: кто заполнил, кто нет, группы риска. «Скопировать напоминание» — готовый текст для чата кураторов.</li>' +
+      '<li><b>Аналитика</b> — динамика и рейтинг, можно выбрать курсы и период.</li>' +
+      '<li><b>Задачи</b> — кураторские задачи со сроком; статус виден цветом.</li>' +
+      '<li><b>Календарь дней</b> — праздники РФ уже проставлены. Выберите дни и нажмите: выходные, электронное или дистанционное обучение. Здесь же кураторские мероприятия.</li>' +
+      '<li><b>Состав групп</b> — загрузка списков из Excel, новый учебный год, студенты, кураторы и их личные ссылки (там можно сменить ссылку).</li>' +
+      '<li><b>Журнал</b> — кто и что менял; кнопка «↩ Отменить» возвращает прежнюю отметку.</li>' +
+      '<li>В карточке группы есть «Выгрузка группы в Excel».</li></ul><button class="btn" id="helpOk" style="width:100%;margin-top:14px">Понятно</button></div>';
+    document.body.appendChild(ov); ov.querySelector('#helpOk').onclick = function () { ov.remove(); }; ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
   }
 
   function render() {
@@ -547,7 +660,7 @@
   }
   function bindRm() { [].forEach.call(app.querySelectorAll('[data-rm]'), function (b) { b.onclick = function () { S.setDay(b.dataset.rm, null); }; }); }
   function init() {
-    app = $('#app'); UI.demoBar($('#demo'), 'Данные: октябрь 2026 (2–4 курсы) и ноябрь 2026 (1 курс), ФИО студентов обезличены. Страница куратора открывается отдельно: <a href="index.html" target="_blank">index.html</a> — отметки оттуда сразу появляются здесь.');
+    app = $('#app'); $('#helpA').onclick = helpAdmin; UI.demoBar($('#demo'), 'Данные: октябрь 2026 (2–4 курсы) и ноябрь 2026 (1 курс), ФИО студентов обезличены. Страница куратора открывается отдельно: <a href="index.html" target="_blank">index.html</a> — отметки оттуда сразу появляются здесь.');
     [].forEach.call(document.querySelectorAll('#tabs button, .rail button'), function (b) { b.onclick = function () { st.tab = b.dataset.t; $('#drawer').classList.remove('on'); render(); window.scrollTo(0, 0); }; });
     S.onChange(function () { var sc = window.scrollY; render(); window.scrollTo(0, sc); });
     render();
