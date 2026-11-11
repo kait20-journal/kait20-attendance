@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>КАИТ-20 · Посещаемость — панель заведующей</title>
+<title>КАИТ-20 · Посещаемость — панель заведующего отделения</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="gate" id="gate"><div class="box">
   <div class="logo">К20</div>
-  <h2>Панель заведующей</h2>
+  <h2>Панель заведующего отделения</h2>
   <div class="mut sm" style="margin-top:4px">КАИТ-20 · Посещаемость</div>
   <input type="password" id="pin" inputmode="numeric" maxlength="40" placeholder="••••" autocomplete="off">
   <div class="err" id="pinErr"></div>
@@ -30,7 +30,7 @@
 </nav>
 <div class="mainc">
 <div class="top"><div class="wrap">
-  <div class="brand"><div class="logo">К20</div><div>КАИТ-20 · Посещаемость<small>Панель заведующей отделением</small></div></div>
+  <div class="brand"><div class="logo">К20</div><div>КАИТ-20 · Посещаемость<small>Панель заведующего отделения</small></div></div>
   <div class="sp"></div>
   <div class="tabs" id="tabs" style="background:rgba(255,255,255,.12)">
     <button data-t="dash" class="on" style="color:#fff">Дашборд</button><button data-t="an" style="color:#cfe0ff">Аналитика</button><button data-t="tk" style="color:#cfe0ff">Задачи</button><button data-t="cal" style="color:#cfe0ff">Календарь дней</button><button data-t="ros" style="color:#cfe0ff">Состав групп</button><button data-t="log" style="color:#cfe0ff">Журнал</button>
@@ -47,6 +47,7 @@
 <script src="config.js"></script>
 <script src="core.js"></script>
 <script src="ui.js"></script>
+<script src="anim.js"></script>
 <script>
 (function () {
   var K = KAIT, S = K.Store, UI = window.UI, $ = UI.$, esc = K.esc, PIN = '2026';
