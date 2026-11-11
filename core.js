@@ -69,10 +69,10 @@
   if (!REMOTE) Object.keys(seed.marks).forEach(function (gid) { Object.keys(seed.marks[gid]).forEach(function (sid) { Object.keys(seed.marks[gid][sid]).forEach(function (d) { if (isWeekend(d)) seedWk[d] = 1; }); }); });
   function dayInfo(d) {
     var o = ov.days[d];
-    if (o) return { off: o.t === 'off', label: o.l || '', custom: true };
+    if (o) return { off: o.t === 'off', label: o.l || '', custom: true, mode: (o.t === 'elearn' || o.t === 'remote') ? o.t : '' };
     if (HOLIDAYS[d]) return { off: true, label: HOLIDAYS[d], custom: false };
     if (isWeekend(d)) return seedWk[d] ? { off: false, label: 'Учебная суббота', custom: false } : { off: true, label: 'Выходной', custom: false };
-    return { off: false, label: '', custom: false };
+    return { off: false, label: '', custom: false, mode: '' };
   }
 
   var Store = {
@@ -111,7 +111,8 @@
     who: function (v) { if (v !== undefined) { ov.who = v; save(); } return ov.who; },
     journal: function () { return ov.journal; },
     onChange: function (f) { listeners.push(f); },
-    reset: function () { ov = { marks: {}, journal: [], who: ov.who, days: {}, tasks: ov.tasks || [] }; save(); },
+    reset: function () { ov = { marks: {}, journal: [], who: ov.who, days: {}, tasks: ov.tasks || [], events: ov.events || [] }; save(); },
+    events: function () { return REMOTE ? eventsR : (ov.events = ov.events || []); },
     tasks: function () { return REMOTE ? tasksR : (ov.tasks = ov.tasks || []); },
     /* сколько студентов группы отмечено на дату */
     rosterOn: function (g, d) { return g.all.filter(function (s) { return activeOn(s, d); }); },
@@ -129,9 +130,9 @@
     var o = {}; Object.keys(net.auth || {}).forEach(function (k) { o[k] = net.auth[k]; }); Object.keys(body).forEach(function (k) { o[k] = body[k]; });
     return G.fetch(CFG.api, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(o) }).then(function (r) { return r.json(); });
   }
-  var tasksR = [];
+  var tasksR = [], eventsR = [];
   function applyLoad(res) {
-    tasksR = res.tasks || [];
+    tasksR = res.tasks || []; eventsR = res.events || [];
     seed.groups = res.groups; seed.marks = res.marks; ov.days = res.days || {}; if (res.journal) ov.journal = res.journal;
     net.v = res.v; net.role = res.role; net.name = res.name; ov.who = res.name; rebuild();
   }
@@ -220,6 +221,29 @@
   };
   Store.doneTask = function (id, flag) {
     return taskOp({ act: 'taskDone', id: id, done: flag ? 1 : 0 }, function (L) { L.forEach(function (t) { if (t.id === id) t.done = flag ? today() : ''; }); });
+  };
+  /* ---------- кураторские мероприятия (календарь) ---------- */
+  Store.addEvent = function (v) {
+    return taskOp({ act: 'eventAdd', date: v.date, title: v.title, desc: v.desc || '', courses: v.courses || [], curators: v.curators || [] }, function () {
+      ov.events = ov.events || []; ov.events.push({ id: tid(), date: v.date, title: v.title, desc: v.desc || '', courses: v.courses || [], curators: v.curators || [] });
+    });
+  };
+  Store.editEvent = function (id, v) {
+    return taskOp({ act: 'eventEdit', id: id, date: v.date, title: v.title, desc: v.desc || '', courses: v.courses || [], curators: v.curators || [] }, function () {
+      (ov.events || []).forEach(function (e) { if (e.id === id) { e.date = v.date; e.title = v.title; e.desc = v.desc || ''; e.courses = v.courses || []; e.curators = v.curators || []; } });
+    });
+  };
+  Store.delEvent = function (id) {
+    return taskOp({ act: 'eventDel', id: id }, function () { ov.events = (ov.events || []).filter(function (e) { return e.id !== id; }); });
+  };
+  /* мероприятия, касающиеся куратора: явно названные или (если никого не называли) все кураторы указанных курсов */
+  Store.eventsFor = function (name) {
+    var cs = {}; seed.groups.forEach(function (g) { if (g.curator === name) cs[g.course] = 1; });
+    return Store.events().filter(function (e) {
+      if (REMOTE) return true;
+      if (e.curators && e.curators.length) return e.curators.indexOf(name) >= 0;
+      return !e.courses || !e.courses.length || e.courses.some(function (c) { return cs[c]; });
+    });
   };
   Store.refresh = refresh;
   /* синхронизация вкладок: куратор отмечает — панель заведующей обновляется */
@@ -320,10 +344,10 @@
   /* Табель в привычном формате: лист на группу, дни, итоги; «+» = пустая клетка, как в старых файлах */
   function exportTabel(y, m, groupIds) {
     var dates = monthDates(y, m, false), sheets = [];
-    var sum = [['Группа', 'Студентов', 'Посещаемость, %', 'Опозданий', 'Больничный', 'Заявление', 'По приказу', 'Неуважительно (н+у)', 'ИУП', 'Практика']];
+    var sum = [['Группа', 'Студентов', 'Посещаемость, %', 'Опозданий', 'Больничный', 'Заявление', 'По приказу', 'Неуважительно (н+у)', 'ИУП', 'Практика', 'Куратор']];
     groupIds.forEach(function (gid) {
       var g = byId[gid], head = ['№ п/п', 'ФИО'].concat(dates.map(function (d) { return parse(d).getDate(); }), ['Опозданий', 'ИУП', 'Больничный', 'Заявление', 'По приказу', 'Неуважительно', 'Итого пропусков']);
-      var rows = [[g.name], [], head];
+      var rows = [[g.name + ' · куратор: ' + (g.curator || '—')], [], head];
       Store.rosterIn(g, dates).forEach(function (s, i) {
         var c = studentCnt(gid, s.id, dates), d = derive(c);
         rows.push([i + 1, s.fio].concat(dates.map(function (dt) { var v = Store.get(gid, s.id, dt); return v === '+' ? '' : v; }), [c['о'], c['и'], c['б'], c['з'], c['п'], d.unexc, d.absent]));
@@ -333,9 +357,9 @@
       var w = [6, 34].concat(dates.map(function () { return 3.4; }), [11, 7, 11, 11, 11, 13, 14]);
       sheets.push({ name: g.name, rows: rows, widths: w, headerRows: 3, nameCol: true });
       var gc = groupCnt(gid, dates), gd = derive(gc);
-      sum.push([g.name, Store.rosterIn(g, dates).length, gd.pct === null ? '' : Math.round(gd.pct * 10) / 10, gc['о'], gc['б'], gc['з'], gc['п'], gd.unexc, gc['и'], gc['р']]);
+      sum.push([g.name, Store.rosterIn(g, dates).length, gd.pct === null ? '' : Math.round(gd.pct * 10) / 10, gc['о'], gc['б'], gc['з'], gc['п'], gd.unexc, gc['и'], gc['р'], g.curator || '']);
     });
-    sheets.unshift({ name: 'Сводка', rows: [['Сводка за ' + MONTHS[m].toLowerCase() + ' ' + y], []].concat(sum), widths: [14, 11, 16, 11, 12, 11, 12, 20, 8, 10], headerRows: 3 });
+    sheets.unshift({ name: 'Сводка', rows: [['Сводка за ' + MONTHS[m].toLowerCase() + ' ' + y], []].concat(sum), widths: [14, 11, 16, 11, 12, 11, 12, 20, 8, 10, 26], headerRows: 3 });
     return buildXlsx(sheets);
   }
 
