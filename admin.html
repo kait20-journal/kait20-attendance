@@ -202,7 +202,7 @@
           return '<td class="h" style="background:' + heat(a / cn) + '" title="' + esc(g.id) + ' · ' + K.fmtLong(d) + ': отсутствуют ' + a + ' из ' + cn + '"></td>';
         }).join('') + '<td class="pc">' + (gv.pct === null ? '–' : Math.round(gv.pct) + '%') + '</td></tr>';
       }).join('') + '</tbody></table></div>' +
-      '<div class="hmlegend"><span>меньше пропусков</span><i style="background:#e6f6ec"></i><i style="background:#ffe3a3"></i><i style="background:#f7a07a"></i><i style="background:#e5483b"></i><span>больше</span><i style="background:#f1f3f8;margin-left:12px"></i><span>нет отметок</span></div></div>';
+      '<div class="hmlegend"><span>меньше пропусков</span><i style="background:rgb(120,215,170)"></i><i style="background:rgb(245,205,120)"></i><i style="background:rgb(250,150,105)"></i><i style="background:rgb(240,95,90)"></i><span>больше</span><i style="background:#f1f3f8;margin-left:12px"></i><span>нет отметок</span></div></div>';
 
     /* рейтинг + динамика */
     P.rank = '<div class="card sec rank"><h3>Рейтинг групп <small>пропуски в % от посещаемых занятий</small></h3>' + rankHtml(gs, dates) + '</div>';
@@ -222,10 +222,10 @@
     bindDash();
   }
   function heat(s) {
-    var st3 = [[0, [230, 246, 236]], [.2, [255, 227, 163]], [.4, [247, 160, 122]], [.65, [229, 72, 59]]];
+    var st3 = [[0, [120, 215, 170]], [.2, [245, 205, 120]], [.4, [250, 150, 105]], [.65, [240, 95, 90]]];
     s = Math.min(s, .65);
     for (var i = 1; i < st3.length; i++) if (s <= st3[i][0]) { var a = st3[i - 1], b = st3[i], t = (s - a[0]) / (b[0] - a[0]); return 'rgb(' + [0, 1, 2].map(function (k) { return Math.round(a[1][k] + (b[1][k] - a[1][k]) * t); }).join(',') + ')'; }
-    return 'rgb(229,72,59)';
+    return 'rgb(240,95,90)';
   }
   function riskList(gs, dates) {
     var out = [];
@@ -307,8 +307,18 @@
   function drawer(html) { var d = $('#drawer'); d.innerHTML = '<div class="hd"><button class="btn ghost sm" id="dx">✕ Закрыть</button></div>' + html; d.classList.add('on'); $('#dx').onclick = function () { d.classList.remove('on'); }; }
   function openGroup(gid) {
     var g = S.group(gid), ms = monthsIn(st.from, st.to), pm = ms[0], found = false; for (var mi = ms.length - 1; mi >= 0 && !found; mi--) { var mdl = K.monthDates(+ms[mi].slice(0, 4), +ms[mi].slice(5) - 1, false); if (g.students.some(function (s) { return mdl.some(function (d) { return S.get(gid, s.id, d); }); })) { pm = ms[mi]; found = true; } } var p = pm.split('-'), dates = K.monthDates(+p[0], +p[1] - 1, false), sd = K.studyDates(dates[0], dates[dates.length - 1]), dv = K.derive(K.groupCnt(gid, sd));
-    drawer('<div class="hd" style="margin-top:-6px"><h2>' + esc(g.name) + '</h2><span class="mut">' + g.course + ' курс · ' + K.MONTHS[+p[1] - 1] + ' ' + p[0] + ' · посещаемость ' + pct(dv.pct) + '</span></div><div id="dmx"></div>' + UI.legend());
+    drawer('<div class="hd" style="margin-top:-6px"><h2>' + esc(g.name) + '</h2><span class="mut">' + g.course + ' курс · ' + K.MONTHS[+p[1] - 1] + ' ' + p[0] + ' · посещаемость ' + pct(dv.pct) + '</span><div class="mut sm" style="margin-top:2px">Куратор: ' + esc(g.curator || '—') + '</div><div style="margin-top:10px"><button class="btn sm" id="gxl">⬇ Выгрузка группы в Excel</button></div></div><div id="dmx"></div>' + UI.legend());
     UI.matrix($('#dmx'), gid, dates, { editable: false });
+    $('#gxl').onclick = function () {
+      var y = +p[0], mo = +p[1] - 1, bytes = K.exportTabel(y, mo, [gid]), name = 'Посещаемость_' + g.name + '_' + K.MONTHS[mo] + '_' + y + '.xlsx', blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      function plain() { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); UI.toast('Файл скачан'); }
+      if (window.claude && window.claude.use) {
+        window.claude.use('downloads').then(function (dl) {
+          if (!dl) return plain();
+          dl.save({ filename: name, data: blob }).then(function () { UI.toast('Файл сохранён'); }, function (e) { if (!e || e.code !== 'declined') UI.toast('Не удалось сохранить файл'); });
+        }, plain);
+      } else plain();
+    };
   }
   function openStudent(sid) {
     var x = S.student(sid), dates = K.studyDates(st.from, st.to), c = K.studentCnt(x.g.id, sid, dates), d = K.derive(c);
@@ -325,15 +335,15 @@
       '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px">' + ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(function (d) { return '<div class="xs mut" style="text-align:center">' + d + '</div>'; }).join('');
     for (var i = 0; i < lead; i++) h += '<div></div>';
     dates.forEach(function (d) {
-      var di = S.dayInfo(d), isSel = d >= calSel.a && d <= calSel.b;
-      h += '<button class="calc" data-d="' + d + '" style="border:' + (isSel ? '2px solid var(--acc)' : '1px solid var(--line)') + ';border-radius:12px;padding:8px 2px;background:' + (di.off ? 'repeating-linear-gradient(45deg,#f1f3f8,#f1f3f8 4px,#e8ebf2 4px,#e8ebf2 8px)' : '#fff') + ';min-height:62px"><b>' + K.parse(d).getDate() + '</b><div class="xs ' + (di.off ? 'mut' : '') + '" style="color:' + (di.off ? '#667085' : '#18743a') + ';line-height:1.15;margin-top:2px">' + (di.off ? esc(di.label || 'выходной').slice(0, 14) : (di.label ? esc(di.label).slice(0, 14) : '')) + '</div>' + (di.custom ? '<div class="xs" style="color:var(--acc)">●</div>' : '') + '</button>';
+      var di = S.dayInfo(d), isSel = d >= calSel.a && d <= calSel.b, ne = eventsOn(d).length;
+      h += '<button class="calc" data-d="' + d + '" style="border:' + (isSel ? '2px solid var(--acc)' : '1px solid var(--line)') + ';border-radius:12px;padding:8px 2px;background:' + (di.off ? 'repeating-linear-gradient(45deg,#f1f3f8,#f1f3f8 4px,#e8ebf2 4px,#e8ebf2 8px)' : di.mode ? MODEBG[di.mode] : '#fff') + ';min-height:62px"><b>' + K.parse(d).getDate() + '</b><div class="xs ' + (di.off ? 'mut' : '') + '" style="color:' + (di.off ? '#667085' : di.mode ? MODEC[di.mode] : '#18743a') + ';line-height:1.15;margin-top:2px">' + (di.off ? esc(di.label || 'выходной').slice(0, 14) : di.mode ? MODEN[di.mode] : (di.label ? esc(di.label).slice(0, 14) : '')) + '</div>' + (di.custom ? '<div class="xs" style="color:var(--acc)">●</div>' : '') + (ne ? '<div class="xs" style="color:#ffd27a">★ ' + ne + '</div>' : '') + '</button>';
     });
-    h += '</div><div class="xs mut" style="margin-top:10px">Штриховка — выходной. Синяя точка — день изменён вручную.</div></div>';
+    h += '</div><div class="xs mut" style="margin-top:10px">Штриховка — выходной. Жёлтый день — электронное обучение (задания на дом), голубой — дистанционное (пары онлайн). ★ — кураторское мероприятие. Синяя точка — день изменён вручную.</div></div>';
     h += '<div class="card sec"><h3>Изменить дни</h3><div class="filters" style="margin:0 0 8px"><label>С<input type="date" id="c1" value="' + calSel.a + '"></label><label>По<input type="date" id="c2" value="' + calSel.b + '"></label></div>' +
       '<label class="sm mut" style="display:block;margin-bottom:10px">Название (необязательно)<input type="text" id="cl" placeholder="Например: День народного единства" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-top:3px"></label>' +
-      '<div class="chips"><button class="btn sm" id="coff">Сделать выходными</button><button class="btn ghost sm" id="cwork">Сделать учебными</button><button class="btn ghost sm" id="cdef">Вернуть по умолчанию</button></div>' +
+      '<div class="chips"><button class="btn sm" id="coff">Сделать выходными</button><button class="btn ghost sm" id="cwork">Сделать учебными</button><button class="btn ghost sm" id="celearn">Электронное обучение</button><button class="btn ghost sm" id="cremote">Дистанционное обучение</button><button class="btn ghost sm" id="cdef">Вернуть по умолчанию</button></div>' +
       '<div class="xs mut" style="margin-top:8px">Нажмите на дату в календаре — она подставится в «С» и «По». Для диапазона выберите вторую дату в поле «По».</div>' +
-      '<h3 style="margin-top:18px">Ручные изменения</h3>' + calList() + '</div></div>';
+      '<h3 style="margin-top:18px">Ручные изменения</h3>' + calList() + '</div></div>' + eventsCard(y, m);
     app.innerHTML = h;
     $('#cp').onclick = function () { var d = new Date(y, m - 1, 1); st.calYm = d.getFullYear() + '-' + K.pad(d.getMonth() + 1); cal(); };
     $('#cn').onclick = function () { var d = new Date(y, m + 1, 1); st.calYm = d.getFullYear() + '-' + K.pad(d.getMonth() + 1); cal(); };
@@ -345,18 +355,63 @@
       if (type === 'off') ds.forEach(function (d) { if (!S.isOff(d)) S.groups().forEach(function (g) { g.all.forEach(function (s) { if (S.get(g.id, s.id, d)) marked++; }); }); });
       function go() {
         ds.forEach(function (d) { S.setDay(d, type, lab); });
-        UI.toast(type === 'off' ? 'Выходных дней: ' + ds.length : type === 'work' ? 'Учебных дней: ' + ds.length : 'Возвращено по умолчанию');
+        UI.toast(type === 'off' ? 'Выходных дней: ' + ds.length : type === 'work' ? 'Учебных дней: ' + ds.length : type === 'elearn' ? 'Электронное обучение, дней: ' + ds.length : type === 'remote' ? 'Дистанционное обучение, дней: ' + ds.length : 'Возвращено по умолчанию');
       }
       if (marked) UI.ask('В выбранные дни уже есть отметок: ' + marked + '. Они сохранятся, но перестанут учитываться в статистике. Продолжить?', 'Продолжить').then(function (ok) { if (ok) go(); });
       else go();
     }
-    $('#coff').onclick = function () { applyDays('off'); }; $('#cwork').onclick = function () { applyDays('work'); }; $('#cdef').onclick = function () { applyDays(null); };
+    bindEvents();
+    $('#coff').onclick = function () { applyDays('off'); }; $('#cwork').onclick = function () { applyDays('work'); }; $('#celearn').onclick = function () { applyDays('elearn'); }; $('#cremote').onclick = function () { applyDays('remote'); }; $('#cdef').onclick = function () { applyDays(null); };
   }
   var calSel = { a: '2026-11-09', b: '2026-11-09' };
+  var MODEN = { elearn: 'Электр. обуч.', remote: 'Дистанц.' }, MODEC = { elearn: '#ffd27a', remote: '#8fd0ff' }, MODEBG = { elearn: 'rgba(255,210,122,.18)', remote: 'rgba(110,190,255,.2)' };
+  function eventsOn(d) { return S.events().filter(function (e) { return e.date === d; }); }
+  function eventTarget(e) {
+    var c = e.courses && e.courses.length ? e.courses.join(', ') + ' курс' : 'все курсы';
+    return c + (e.curators && e.curators.length ? ' · кураторы: ' + e.curators.map(K.shortName).join(', ') : ' · все кураторы курсов');
+  }
+  function eventsCard(y, m) {
+    var ym = y + '-' + K.pad(m + 1), list = S.events().filter(function (e) { return e.date.slice(0, 7) === ym; }).sort(function (a, b) { return a.date.localeCompare(b.date); });
+    return '<div class="card sec"><h3>Кураторские мероприятия · ' + K.MONTHS[m] + ' <span style="flex:1"></span><button class="btn sm" id="evNew">+ Мероприятие</button></h3>' +
+      (list.length ? '<table class="tb"><tbody>' + list.map(function (e) {
+        return '<tr><td style="white-space:nowrap"><b>' + K.fmtShort(e.date) + '</b></td><td><b>' + esc(e.title) + '</b>' + (e.desc ? '<div class="mut sm">' + esc(e.desc) + '</div>' : '') + '<div class="xs mut">' + esc(eventTarget(e)) + '</div></td><td style="text-align:right;white-space:nowrap"><button class="btn ghost sm" data-ee="' + e.id + '">Изменить</button> <button class="btn ghost sm" data-ed="' + e.id + '">Удалить</button></td></tr>';
+      }).join('') + '</tbody></table>' : '<div class="mut sm">В этом месяце мероприятий нет. Нажмите «+ Мероприятие»: кураторы увидят его у себя на странице журнала.</div>') + '</div>';
+  }
+  function eventForm(e, defDate) {
+    return new Promise(function (res) {
+      var courses = S.groups().map(function (g) { return g.course; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(), cur = S.curators().map(function (c) { return c.name; }), ov = document.createElement('div'); ov.className = 'ov on'; ov.style.zIndex = 90; ov.style.alignItems = 'center';
+      var fs = 'width:100%;border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-top:4px;font:inherit';
+      ov.innerHTML = '<div class="modal" style="max-height:92vh;overflow:auto"><h3>' + (e ? 'Изменить мероприятие' : 'Новое кураторское мероприятие') + '</h3>' +
+        '<label class="sm mut" style="display:block;margin-top:10px">Название<input data-f="title" type="text" value="' + esc(e ? e.title : '') + '" style="' + fs + '" autocomplete="off" placeholder="Например: родительское собрание"></label>' +
+        '<label class="sm mut" style="display:block;margin-top:10px">Подробности (необязательно)<textarea data-f="desc" rows="3" style="' + fs + '">' + esc(e ? e.desc : '') + '</textarea></label>' +
+        '<label class="sm mut" style="display:block;margin-top:10px">Дата<input data-f="date" type="date" value="' + esc(e ? e.date : defDate) + '" style="' + fs + '"></label>' +
+        '<div class="sm mut" style="margin-top:12px">Для каких курсов (не выбрано — для всех)</div><div class="chips" style="margin-top:6px">' + courses.map(function (c) { return '<label class="chip" style="display:inline-flex;gap:6px;align-items:center"><input type="checkbox" data-c="' + c + '"' + (e && e.courses && e.courses.indexOf(c) >= 0 ? ' checked' : '') + '> ' + c + ' курс</label>'; }).join('') + '</div>' +
+        '<div class="sm mut" style="margin-top:12px">Конкретные кураторы (необязательно)</div><div class="xs mut">Если никого не выбрать, мероприятие увидят все кураторы выбранных курсов.</div>' +
+        '<div style="max-height:170px;overflow:auto;margin-top:6px;border:1px solid var(--line);border-radius:11px;padding:6px 10px">' + cur.map(function (n, i) { return '<label style="display:flex;gap:8px;align-items:center;padding:4px 0"><input type="checkbox" data-n="' + i + '"' + (e && e.curators && e.curators.indexOf(n) >= 0 ? ' checked' : '') + '> ' + esc(n) + '</label>'; }).join('') + '</div>' +
+        '<div class="acts" style="display:flex;gap:8px;margin-top:16px"><button class="btn ghost" data-r="0" style="flex:1">Отмена</button><button class="btn" data-r="1" style="flex:1">' + (e ? 'Сохранить' : 'Добавить') + '</button></div></div>';
+      function q(f) { return ov.querySelector('[data-f="' + f + '"]'); }
+      ov.addEventListener('click', function (ev) {
+        var b = ev.target.closest('[data-r]');
+        if (!b) { if (ev.target === ov) { ov.remove(); res(null); } return; }
+        if (b.dataset.r === '0') { ov.remove(); return res(null); }
+        var title = q('title').value.trim(), date = q('date').value; if (!title || !date) { (title ? q('date') : q('title')).style.borderColor = '#d33'; return; }
+        var cs = [].filter.call(ov.querySelectorAll('[data-c]'), function (c) { return c.checked; }).map(function (c) { return +c.dataset.c; });
+        var cu = [].filter.call(ov.querySelectorAll('[data-n]'), function (c) { return c.checked; }).map(function (c) { return cur[+c.dataset.n]; });
+        ov.remove(); res({ title: title, desc: q('desc').value.trim(), date: date, courses: cs, curators: cu });
+      });
+      document.body.appendChild(ov); q('title').focus();
+    });
+  }
+  function bindEvents() {
+    function fail(er) { UI.toast('Ошибка: ' + er.message); }
+    var nb = $('#evNew'); if (nb) nb.onclick = function () { eventForm(null, calSel.a).then(function (v) { if (v) S.addEvent(v).then(function () { UI.toast('Мероприятие добавлено'); }).catch(fail); }); };
+    [].forEach.call(app.querySelectorAll('[data-ee]'), function (b) { b.onclick = function () { var e = S.events().filter(function (x) { return x.id === b.dataset.ee; })[0]; if (e) eventForm(e, e.date).then(function (v) { if (v) S.editEvent(e.id, v).then(function () { UI.toast('Сохранено'); }).catch(fail); }); }; });
+    [].forEach.call(app.querySelectorAll('[data-ed]'), function (b) { b.onclick = function () { var e = S.events().filter(function (x) { return x.id === b.dataset.ed; })[0]; if (e) UI.ask('Удалить мероприятие «' + e.title + '»?', 'Удалить').then(function (ok) { if (ok) S.delEvent(e.id).then(function () { UI.toast('Удалено'); }).catch(fail); }); }; });
+  }
   function calList() {
     var o = S.calendarOverrides(), ks = Object.keys(o).sort();
     if (!ks.length) return '<div class="mut sm">Пока нет. По умолчанию: сб и вс выходные (кроме суббот, где в данных есть занятия), 4 ноября — праздник.</div>';
-    return '<table class="tb"><tbody>' + ks.map(function (d) { return '<tr><td>' + K.fmtLong(d) + '</td><td><span class="pill ' + (o[d].t === 'off' ? 'amb' : 'gr') + '">' + (o[d].t === 'off' ? 'выходной' : 'учебный') + '</span></td><td class="mut">' + esc(o[d].l || '') + '</td><td><button class="btn ghost sm" data-rm="' + d + '">Убрать</button></td></tr>'; }).join('') + '</tbody></table>';
+    return '<table class="tb"><tbody>' + ks.map(function (d) { return '<tr><td>' + K.fmtLong(d) + '</td><td><span class="pill ' + (o[d].t === 'off' ? 'amb' : 'gr') + '">' + (MODEN[o[d].t] || (o[d].t === 'off' ? 'выходной' : 'учебный')) + '</span></td><td class="mut">' + esc(o[d].l || '') + '</td><td><button class="btn ghost sm" data-rm="' + d + '">Убрать</button></td></tr>'; }).join('') + '</tbody></table>';
   }
 
 
@@ -479,7 +534,7 @@
     else h += '<table class="tb"><thead><tr><th>Когда</th><th>Кто</th><th>Что изменено</th></tr></thead><tbody>' + j.map(function (e) {
       var t = new Date(e.t), when = K.pad(t.getDate()) + '.' + K.pad(t.getMonth() + 1) + ' ' + K.pad(t.getHours()) + ':' + K.pad(t.getMinutes()), what;
       if (e.note) what = '✏ ' + esc(e.note) + (e.sid && S.student(e.sid) ? '' : '');
-      else if (e.day) what = '🗓 ' + K.fmtShort(e.day) + ': ' + (e.dayType === 'off' ? 'выходной' : e.dayType === 'work' ? 'учебный день' : 'по умолчанию') + (e.label ? ' · ' + esc(e.label) : '');
+      else if (e.day) what = '🗓 ' + K.fmtShort(e.day) + ': ' + (e.dayType === 'off' ? 'выходной' : e.dayType === 'work' ? 'учебный день' : e.dayType === 'elearn' ? 'электронное обучение' : e.dayType === 'remote' ? 'дистанционное обучение' : 'по умолчанию') + (e.label ? ' · ' + esc(e.label) : '');
       else { var x = S.student(e.sid); what = esc(x ? K.shortName(x.s.fio) : e.sid) + ' <span class="mut">(' + esc(e.gid || (x ? x.g.id : '')) + ')</span> · ' + K.fmtShort(e.date) + ': ' + UI.st(e.prev || '', e.prev === '+' ? '✓' : e.prev) + ' → ' + UI.st(e.code || '', e.code === '+' ? '✓' : e.code); }
       return '<tr><td class="mut" style="white-space:nowrap">' + when + '</td><td>' + esc(e.who) + '</td><td>' + what + '</td></tr>';
     }).join('') + '</tbody></table>';
