@@ -3,20 +3,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2c2724">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Журнал К20">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
 <meta name="robots" content="noindex,nofollow">
 <title>КАИТ-20 · Посещаемость — куратор</title>
+<script>(function(){var t="";try{t=localStorage.getItem("kait.theme")||""}catch(e){}if(t!=="light"&&t!=="dark")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.setAttribute("data-theme",t)})()</script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="top"><div class="wrap">
-  <div class="brand"><div class="logo">К20</div><div>КАИТ-20 · Посещаемость<small>Журнал куратора</small></div></div>
+  <div class="brand"><div class="logo">К20</div><div>КАИТ-20<span class="hl"> · Посещаемость</span><small>Журнал куратора</small></div></div>
   <div class="sp"></div>
+  <button class="who" id="themeBtn" title="Светлая / тёмная тема" aria-label="Светлая или тёмная тема" style="margin-right:6px"></button>
   <button class="who" id="helpBtn" title="Как пользоваться" aria-label="Как пользоваться" style="margin-right:6px">?<span class="hl"> Помощь</span></button>
   <button class="who" id="whoBtn">Представьтесь</button>
 </div></div>
 <div class="demo" id="demo"></div>
 
 <main class="wrap" id="app"></main>
+<nav class="bnav" id="bnav" aria-label="Разделы"><button data-n="home"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Группы</span></button><button data-n="day"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><span>День</span></button><button data-n="month"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 10h18M8 2v4M16 2v4M9 10v11M15 10v11"/></svg><span>Табель</span></button><button data-n="more"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>Ещё</span></button></nav>
 
 <div class="ov" id="nameOv"><div class="modal">
   <h3>Как вас зовут?</h3>
@@ -84,6 +95,7 @@
   $('#nameIn').onkeydown = function (e) { if (e.key === 'Enter') $('#nameOk').click(); };
   $('#whoBtn').onclick = function () { askName(true); };
   $('#helpBtn').onclick = helpModal;
+  UI.themeBtn($('#themeBtn'));
 
   /* ---------- кураторские задачи ---------- */
   function myTasks() { var w = S.who(); return S.tasks().filter(function (t) { return K.REMOTE || t.cur === w; }); }
@@ -95,7 +107,7 @@
     open.forEach(function (t) {
       var late = t.due && t.due < td, today = t.due === td;
       h += '<div class="tkrow" style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line)"><div style="flex:1"><b>' + esc(t.title) + '</b>' + (t.desc ? '<div class="mut sm">' + esc(t.desc) + '</div>' : '') +
-        (t.due ? '<div class="xs" style="margin-top:3px;color:' + (late ? '#ff9a8f' : today ? '#ffd27a' : 'inherit') + '">' + (late ? 'Просрочено · ' : today ? 'Срок сегодня · ' : 'Срок: ') + K.fmtShort(t.due) + '</div>' : '') + '</div><button class="btn sm" data-tdone="' + t.id + '">✓ Выполнено</button></div>';
+        (t.due ? '<div class="xs" style="margin-top:3px;color:' + (late ? 'var(--t-bad)' : today ? 'var(--t-warn)' : 'inherit') + '">' + (late ? 'Просрочено · ' : today ? 'Срок сегодня · ' : 'Срок: ') + K.fmtShort(t.due) + '</div>' : '') + '</div><button class="btn sm" data-tdone="' + t.id + '">✓ Выполнено</button></div>';
     });
     if (done.length) h += '<div style="margin-top:8px"><button class="btn ghost sm" id="tkShow">' + (st.showDone ? 'Скрыть выполненные' : 'Выполненные (' + done.length + ')') + '</button></div>' + (st.showDone ? done.map(function (t) { return '<div class="mut sm" style="padding:6px 0;border-top:1px solid var(--line)">✓ ' + esc(t.title) + ' · ' + K.fmtShort(t.done) + ' <button class="btn ghost sm" data-tback="' + t.id + '" style="margin-left:6px">Вернуть</button></div>'; }).join('') : '');
     return h + '</div>';
@@ -158,17 +170,20 @@
       }).join('') + '</div>';
       var di = S.dayInfo(st.date), cnt = { p: 0, a: 0, n: 0 };
       S.rosterOn(g, st.date).forEach(function (s) { var v = S.get(g.id, s.id, st.date); if (!v) cnt.n++; else if (v === '+' || v === 'о') cnt.p++; else cnt.a++; });
-      h += '<div class="sumbar"><div><div class="n">' + K.fmtLong(st.date) + '</div></div>' +
+      var rosN = S.rosterOn(g, st.date).length, full = !di.off && rosN > 0 && cnt.n === 0;
+      h += '<div class="sumbar"><div class="dnav"><button class="btn ghost sm" id="dprev" aria-label="Предыдущий учебный день">‹</button><div class="n">' + K.fmtLong(st.date) + '</div><button class="btn ghost sm" id="dnext" aria-label="Следующий учебный день">›</button></div>' +
         (di.off ? '' : '<div><span>присутствуют</span><div class="n" style="color:var(--plus)">' + cnt.p + '</div></div><div><span>отсутствуют</span><div class="n" style="color:var(--nev)">' + cnt.a + '</div></div><div><span>не отмечено</span><div class="n">' + cnt.n + '</div></div>' +
-        '<button class="btn sm" id="allp"' + (cnt.n ? '' : ' disabled') + '>✓ Все присутствуют</button>') + '</div>';
+        (full ? '<span class="daydone">✓ День заполнен</span>' : '<button class="btn sm" id="allp"' + (cnt.n ? '' : ' disabled') + '>✓ ' + (cnt.n < rosN ? 'Остальные присутствуют' : 'Все присутствуют') + '</button>')) + '</div>';
       if (di.mode) h += modeCard(di);
       if (di.off) h += '<div class="card" style="background:#f1f3f8;margin-bottom:12px"><b>🗓 ' + esc(di.label || 'Выходной день') + '</b> <span class="mut">— отметки закрыты заведующей отделением.</span></div>';
       h += '<div class="list">' + S.rosterOn(g, st.date).map(function (s, i) {
         var v = S.get(g.id, s.id, st.date), c = v ? K.CODES[v] : null;
         return '<div class="row" data-s="' + s.id + '"><span class="num">' + (i + 1) + '</span><div class="nm">' + esc(s.fio) + '</div>' +
           (!v && !di.off ? '<button class="ok" title="Присутствует" data-ok="' + s.id + '">✓</button>' : '') +
-          '<button class="cur ' + (c ? 'k-' + c.key : 'k-none') + '" data-pick="' + s.id + '"' + (di.off ? ' disabled' : '') + '>' + (c ? '<span class="st">' + (v === '+' ? '✓' : v) + '</span>' + c.label : 'Не отмечен') + '</button></div>';
-      }).join('') + '</div>' + UI.legend();
+          '<button class="cur ' + (c ? 'k-' + c.key : 'k-none') + '" data-pick="' + s.id + '"' + (di.off ? ' disabled' : '') + '>' + (c ? '<span class="st">' + (v === '+' ? '✓' : v) + '</span><span class="lb">' + c.label + '</span>' : '<span class="lg">Не отмечен</span><span class="shrt">Нет…</span>') + '</button></div>';
+      }).join('') + '</div>' + UI.legend() + '<div class="xs mut swhint">Проведите по списку влево или вправо, чтобы перейти к соседнему учебному дню.</div>';
+      if (!di.off && rosN) h += full ? '<div class="dayfix ok"><div><b>✓ День заполнен</b><span>в колледже ' + cnt.p + ' · нет ' + cnt.a + '</span></div><button class="btn ghost" id="dnext2">Следующий день ›</button></div>'
+        : '<div class="dayfix"><div><b>Осталось отметить: ' + cnt.n + '</b><span>из ' + rosN + ' студентов</span></div><button class="btn" id="allp2">✓ ' + (cnt.n < rosN ? 'Остальные здесь' : 'Все здесь') + '</button></div>';
     } else {
       h += '<div class="mut sm" style="margin:2px 0 10px">Нажмите на клетку, чтобы поставить или изменить отметку. Штриховка — выходной день.</div><div id="mx"></div>' + UI.legend();
     }
@@ -180,22 +195,73 @@
     if (st.view === 'day') {
       var bar = $('#dbar'), on = bar.querySelector('.on'); if (on) bar.scrollLeft = on.offsetLeft - 90;
       [].forEach.call(bar.querySelectorAll('.dpill'), function (b) { b.onclick = function () { st.date = b.dataset.d; render(); }; });
-      var all = $('#allp'); if (all) all.onclick = function () {
+      var allF = function () {
         var w = who() || '—', n = 0; S.rosterOn(g, st.date).forEach(function (s) { if (!S.get(g.id, s.id, st.date)) { S.set(g.id, s.id, st.date, '+', w, true); n++; } });
         S.commit(); UI.toast('Отмечено присутствующими: ' + n);
       };
+      var all = $('#allp'), all2 = $('#allp2'), dn2 = $('#dnext2'); if (all) all.onclick = allF; if (all2) all2.onclick = allF; if (dn2) dn2.onclick = function () { stepDay(1); };
+      $('#dprev').onclick = function () { stepDay(-1); }; $('#dnext').onclick = function () { stepDay(1); };
       [].forEach.call(app.querySelectorAll('[data-ok]'), function (b) { b.onclick = function (e) { e.stopPropagation(); S.set(g.id, b.dataset.ok, st.date, '+', who()); }; });
       [].forEach.call(app.querySelectorAll('[data-pick]'), function (b) { b.onclick = function () { UI.openSheet({ gid: g.id, sid: b.dataset.pick, date: st.date }); }; });
       [].forEach.call(app.querySelectorAll('.row .nm'), function (n) { n.onclick = function () { UI.openSheet({ gid: g.id, sid: n.parentNode.dataset.s, date: st.date }); }; });
     } else UI.matrix($('#mx'), g.id, dates, { editable: true });
   }
 
-  function render() { who(); hashWrite(); if (st.gid) group(); else home(); }
+  function stepDay(dir) {
+    var d = K.parse(st.date); for (var i = 0; i < 21; i++) { d.setDate(d.getDate() + dir); if (!S.isOff(K.iso(d))) break; }
+    st.date = K.iso(d); st.ym = st.date.slice(0, 7); app.setAttribute('data-slide', dir > 0 ? 'l' : 'r'); render(); setTimeout(function () { app.removeAttribute('data-slide'); }, 320);
+  }
+  (function () {
+    var x0 = null, y0 = 0, skip = false;
+    app.addEventListener('touchstart', function (e) { var t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; skip = !st.gid || st.view !== 'day' || !!(e.target.closest && e.target.closest('.datebar,.mwrap,input,select')); }, { passive: true });
+    app.addEventListener('touchend', function (e) {
+      if (x0 === null || skip) { x0 = null; return; } var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0; x0 = null;
+      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 2.2) stepDay(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  })();
+  function navGo(n) {
+    if (n === 'more') return moreSheet();
+    if (n === 'home') { st.gid = null; render(); window.scrollTo(0, 0); return; }
+    var mine = myGroups(), gid = st.gid || (st.lastGid && S.group(st.lastGid) ? st.lastGid : '') || mine[0];
+    if (!gid) { UI.toast('Сначала выберите группу'); return; }
+    st.gid = gid; st.view = n; render(); window.scrollTo(0, 0);
+  }
+  [].forEach.call(document.querySelectorAll('#bnav button'), function (b) { b.onclick = function () { navGo(b.dataset.n); }; });
+  function moreSheet() {
+    var ov = document.createElement('div'); ov.className = 'ov on'; ov.style.zIndex = 90;
+    ov.innerHTML = '<div class="sheet"><h3>Ещё</h3><div class="morel">' +
+      '<button data-m="help"><b>? Как пользоваться</b><span>Короткая инструкция</span></button>' +
+      '<button data-m="theme"><b>' + (UI.theme() === 'light' ? '🌙 Тёмная тема' : '☀️ Светлая тема') + '</b><span>Сейчас: ' + (UI.theme() === 'light' ? 'светлая' : 'тёмная') + '</span></button>' +
+      '<button data-m="inst"><b>📲 Значок на экран телефона</b><span>Журнал будет открываться как приложение</span></button>' +
+      (K.REMOTE ? '' : '<button data-m="who"><b>👤 Сменить куратора</b><span>Только в демо-версии</span></button>') +
+      '</div><button class="btn ghost" data-m="x" style="width:100%;margin-top:12px">Закрыть</button></div>';
+    ov.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-m]'); if (!b && e.target !== ov) return; ov.remove(); if (!b) return;
+      if (b.dataset.m === 'help') helpModal(); else if (b.dataset.m === 'theme') $('#themeBtn').click(); else if (b.dataset.m === 'inst') installHelp(); else if (b.dataset.m === 'who') askName(true);
+    });
+    document.body.appendChild(ov);
+  }
+  function installHelp() {
+    var tok = ''; try { tok = sessionStorage.getItem('kait20-k') || ''; } catch (e) {}
+    /* значок должен запомнить личную ссылку, поэтому на время установки возвращаем её в адрес */
+    if (tok) { try { history.replaceState(null, '', location.pathname + '?k=' + encodeURIComponent(tok)); } catch (e) {} }
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    var ov = document.createElement('div'); ov.className = 'ov on'; ov.style.alignItems = 'center'; ov.style.zIndex = 90;
+    ov.innerHTML = '<div class="modal" style="max-height:92vh;overflow:auto"><h3>Значок на экран телефона</h3><ol style="margin:10px 0 0;padding-left:20px;line-height:1.55;font-size:14px">' +
+      (ios ? '<li>Откройте журнал в <b>Safari</b> (не внутри мессенджера).</li><li>Нажмите кнопку <b>«Поделиться»</b> внизу экрана.</li><li>Выберите <b>«На экран „Домой“»</b> и нажмите «Добавить».</li>'
+           : '<li>Откройте журнал в <b>Chrome</b> или Яндекс Браузере (не внутри мессенджера).</li><li>Нажмите меню <b>⋮</b> в углу экрана.</li><li>Выберите <b>«Добавить на главный экран»</b> или «Установить приложение».</li>') +
+      '<li>Дальше открывайте журнал с этого значка — ссылка больше не понадобится.</li></ol>' +
+      '<div class="mut sm" style="margin-top:10px">Делайте это, не закрывая это окно. Значок запоминает вашу личную ссылку, поэтому ставьте его только на свой телефон.</div><button class="btn" id="instOk" style="width:100%;margin-top:14px">Готово</button></div>';
+    function close() { ov.remove(); try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {} }
+    document.body.appendChild(ov); ov.querySelector('#instOk').onclick = close; ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+  }
+  function navState() { if (st.gid) st.lastGid = st.gid; var cur = st.gid ? st.view : 'home'; [].forEach.call(document.querySelectorAll('#bnav button'), function (b) { b.classList.toggle('on', b.dataset.n === cur); }); document.body.classList.toggle('ingroup', !!st.gid && st.view === 'day'); }
+  function render() { who(); hashWrite(); if (st.gid) group(); else home(); navState(); }
   var raf; S.onChange(function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(function () { var sc = window.scrollY, mx = document.querySelector('.mwrap'), mt = mx && mx.scrollTop, ml = mx && mx.scrollLeft; render(); window.scrollTo(0, sc); var m2 = document.querySelector('.mwrap'); if (m2 && mx) { m2.scrollTop = mt; m2.scrollLeft = ml; } }); });
   window.addEventListener('hashchange', function () { hashRead(); render(); });
 
   UI.demoBar($('#demo'));
-  function boot() { hashRead(); render(); if (!K.REMOTE) askName(false); else { try { if (!localStorage.getItem('kait.help.seen')) setTimeout(helpModal, 700); } catch (e) {} } }
+  function boot() { document.body.classList.add('ready'); hashRead(); render(); if (!K.REMOTE) askName(false); else { try { if (!localStorage.getItem('kait.help.seen')) setTimeout(helpModal, 700); } catch (e) {} } }
   if (!K.REMOTE) boot();
   else {
     var tok = ''; try { tok = new URLSearchParams(location.search).get('k') || sessionStorage.getItem('kait20-k') || ''; } catch (e) {}
