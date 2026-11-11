@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#2c2724">
 <meta name="robots" content="noindex,nofollow">
 <title>КАИТ-20 · Посещаемость — панель заведующего отделения</title>
+<script>(function(){var t="";try{t=localStorage.getItem("kait.theme")||""}catch(e){}if(t!=="light"&&t!=="dark")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.setAttribute("data-theme",t)})()</script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -35,6 +37,7 @@
   <div class="tabs" id="tabs" style="background:rgba(255,255,255,.12)">
     <button data-t="dash" class="on" style="color:#fff">Дашборд</button><button data-t="an" style="color:#cfe0ff">Аналитика</button><button data-t="tk" style="color:#cfe0ff">Задачи</button><button data-t="cal" style="color:#cfe0ff">Календарь дней</button><button data-t="ros" style="color:#cfe0ff">Состав групп</button><button data-t="log" style="color:#cfe0ff">Журнал</button>
   </div>
+  <button class="btn ghost sm" id="themeBtn" title="Светлая / тёмная тема" aria-label="Светлая или тёмная тема" style="margin-left:8px"></button>
   <button class="btn ghost sm" id="helpA" title="Как пользоваться" style="margin-left:8px">? Помощь</button>
 </div></div>
 <div class="demo" id="demo"></div>
@@ -72,7 +75,7 @@
 
   /* ---------- состояние ---------- */
   var TM = K.today().slice(0, 7), TEND = K.iso(new Date(+TM.slice(0, 4), +TM.slice(5), 0));
-  var st = { rg: '', tab: 'dash', from: '2026-10-01', to: TEND > '2026-11-30' ? TEND : '2026-11-30', course: 0, cs: [], spec: '', gid: '', cur: '', allMiss: false, day: null, thr: 5, allRank: false, allRisk: false, calYm: TM < '2026-10' ? '2026-11' : TM };
+  var st = { rg: '', tab: 'dash', from: '2026-10-01', to: TEND > '2026-11-30' ? TEND : '2026-11-30', course: 0, cs: [], spec: '', gid: '', cur: '', allMiss: false, missCollapsed: true, day: null, thr: 5, allRank: false, allRisk: false, calYm: TM < '2026-10' ? '2026-11' : TM };
   var app;
 
   function lastWork(d) { var x = K.parse(d); for (var i = 0; i < 10 && S.isOff(K.iso(x)); i++) x.setDate(x.getDate() - 1); return K.iso(x); }
@@ -120,6 +123,7 @@
       '<div style="flex:1;min-width:260px"><div style="display:flex;height:16px;border-radius:6px;overflow:hidden;background:#eef1f6">' + seg(c.here, '#22a35a', 'В колледже') + seg(c.absent, '#e5483b', 'Отсутствуют') + seg(c.skip, '#98a2b3', 'ИУП / практика') + '</div>' +
       '<div class="xs mut" style="margin-top:8px;display:flex;gap:14px;flex-wrap:wrap"><span><span style="color:#22a35a">■</span> в колледже ' + c.here + (c.late ? ' (опоздали ' + c.late + ')' : '') + '</span><span><span style="color:#e5483b">■</span> отсутствуют ' + c.absent + '</span><span><span style="color:#98a2b3">■</span> ИУП / практика ' + c.skip + '</span><span>не отмечено ' + c.none + '</span></div></div></div>' + svg + '<div class="xs mut">Столбцы — число студентов в колледже по дням периода, нажмите на столбец, чтобы выбрать день.</div>') + '</div>';
   }
+  function plural(n, a, b, c) { var m = n % 100, k = n % 10; return m > 10 && m < 20 ? c : k === 1 ? a : k >= 2 && k <= 4 ? b : c; }
   function agg(gs, dates) { var c = K.emptyCnt(); gs.forEach(function (g) { K.addCnt(c, K.groupCnt(g.id, dates)); }); return c; }
 
   /* ---------- дашборд ---------- */
@@ -132,7 +136,7 @@
     var courses = S.groups().map(function (g) { return g.course; }).filter(function (v, i, a) { return a.indexOf(v) === i; }).sort();
     var all = S.groups();
 
-    var h = '<div class="filters noprint"><label>С<input type="date" id="f1" value="' + st.from + '"></label><label>По<input type="date" id="f2" value="' + st.to + '"></label>' +
+    var h = '', F = '<div class="filters noprint"><label>С<input type="date" id="f1" value="' + st.from + '"></label><label>По<input type="date" id="f2" value="' + st.to + '"></label>' +
       '<div class="chips" style="margin-bottom:2px">' + [['t', 'Сегодня'], ['y', 'Вчера'], ['w', 'Эта неделя'], ['2026-10', 'Октябрь'], ['2026-11', 'Ноябрь'], ['all', 'Всё время']].map(function (c) { return '<button class="chip' + (perOn(c[0]) ? ' on' : '') + '" data-p="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
       '<div class="chips" style="margin-bottom:2px"><span class="mut sm" style="align-self:center">Курс:</span><button class="chip' + (!st.cs.length ? ' on' : '') + '" data-c="0">Все</button>' + courses.map(function (c) { return '<button class="chip' + (st.cs.indexOf(c) >= 0 ? ' on' : '') + '" data-c="' + c + '">' + c + '</button>'; }).join('') + '</div>' +
       '<label>Специальность<select id="fs"><option value="">Все</option>' + specs.map(function (c) { return '<option' + (st.spec === c ? ' selected' : '') + '>' + c + '</option>'; }).join('') + '</select></label>' +
@@ -177,8 +181,8 @@
     P.today = '<div class="card sec today2"><div class="th"><b>' + (K.today() === td ? 'Сегодня' : 'Последний учебный день') + ', ' + K.fmtLong(td) + '</b></div>' +
       '<svg class="ring big" viewBox="0 0 190 190"><circle cx="95" cy="95" r="78" fill="none" stroke="#e8edf5" stroke-width="12"/><circle cx="95" cy="95" r="78" fill="none" stroke="#4c9bff" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + (RC * frac) + ' ' + RC + '" transform="rotate(-90 95 95)"/><text x="95" y="106" text-anchor="middle" font-size="44" font-weight="700" fill="#fff">' + Math.round(frac * 100) + '%</text><text x="95" y="128" text-anchor="middle" font-size="12" fill="#fff">групп заполнено</text></svg>' +
       '<div class="mut sm" style="text-align:center">' + (tdOff ? 'Сегодня выходной (' + esc(S.dayInfo(K.today()).label) + '). ' : '') + 'Полностью заполнено групп: ' + done + ' из ' + all.length + '</div>' +
-      '<div class="trio3"><div><b>' + done + '</b><span>готово</span></div><div><b style="color:#ffd27a">' + part + '</b><span>частично</span></div><div><b style="color:#ff9a8f">' + none + '</b><span>не начали</span></div></div></div>';
-    P.miss = '<div class="card sec misscard">' + (miss.length ? missBlock(miss, td) : '<div class="mut sm">✓ Все группы отмечены</div>') + '</div>';
+      '<div class="trio3"><div><b>' + done + '</b><span>готово</span></div><div><b style="color:var(--t-warn)">' + part + '</b><span>частично</span></div><div><b style="color:var(--t-bad)">' + none + '</b><span>не начали</span></div></div></div>';
+    P.miss = '<div class="card sec misscard" id="missCard">' + (miss.length ? missBlock(miss, td) : '<div class="mut sm">✓ Все группы отмечены</div>') + '</div>';
 
     /* KPI */
     var risk = riskList(gs, dates);
@@ -211,14 +215,39 @@
 
     /* зона риска */
     var rk0 = risk.filter(function (r) { return r.unexc >= st.thr; }), pool = st.allRisk ? risk.filter(function (r) { return r.unexc > 0; }) : rk0, shown = st.allRisk ? pool : pool.slice(0, 12);
-    P.risk = '<div class="card sec"><h3>Зона риска <small>неуважительные пропуски за период</small><span style="flex:1"></span><label class="sm mut noprint">порог: от <input type="number" id="thr" min="1" max="30" value="' + st.thr + '" style="width:56px;border:1px solid var(--line);border-radius:8px;padding:4px 6px"> «н»</label></h3>' +
+    P.risk = '<div class="card sec" id="riskCard"><h3>Зона риска <small>неуважительные пропуски за период</small><span style="flex:1"></span><label class="sm mut noprint">порог: от <input type="number" id="thr" min="1" max="30" value="' + st.thr + '" style="width:56px;border:1px solid var(--line);border-radius:8px;padding:4px 6px"> «н»</label></h3>' +
       '<table class="tb"><thead><tr><th>Студент</th><th>Группа</th><th>Куратор</th><th>Неуваж.</th><th>Подряд</th><th>Всего пропусков</th><th>Посещ.</th></tr></thead><tbody>' +
       (shown.length ? shown.map(function (r) {
         return '<tr class="cl" data-s="' + r.s.id + '"><td>' + esc(r.s.fio) + '</td><td>' + esc(r.g.id) + '</td><td class="mut">' + esc(r.g.curator ? K.shortName(r.g.curator) : '') + '</td><td><span class="pill ' + (r.unexc >= st.thr ? 'red' : 'amb') + '">' + r.unexc + '</span></td><td>' + (r.streak || '–') + '</td><td>' + r.absent + '</td><td>' + pct(r.pct, 0) + '</td></tr>';
       }).join('') : '<tr><td colspan="7" class="empty">Нет данных за период</td></tr>') + '</tbody></table>' +
       (rk0.length > 12 || st.allRisk ? '<div style="margin-top:10px"><button class="btn ghost sm noprint" id="rall">' + (st.allRisk ? 'Свернуть' : 'Показать всех с неуваж. пропусками (' + risk.filter(function (r) { return r.unexc > 0; }).length + ')') + '</button></div>' : '') + '</div>';
-    if (st.tab === 'an') h += '<div class="hero"><h1>Аналитика</h1><p>' + (st.cs.length ? 'Курсы: ' + st.cs.join(', ') : 'Все курсы') + ' · ' + K.fmtShort(st.from) + ' — ' + K.fmtShort(st.to) + ' · групп: ' + gs.length + '. Выберите курсы и период в фильтре сверху.</p></div>' + P.kpi + '<div class="dg2">' + P.dyn + P.rank + '</div>' + P.hm;
-    else h += '<div class="dg"><div class="dg-l">' + P.today + '</div><div class="dg-r">' + P.kpi + P.col + '</div></div>' + P.miss + P.risk;
+    if (st.tab === 'an') h += F + '<div class="hero"><h1>Аналитика</h1><p>' + (st.cs.length ? 'Курсы: ' + st.cs.join(', ') : 'Все курсы') + ' · ' + K.fmtShort(st.from) + ' — ' + K.fmtShort(st.to) + ' · групп: ' + gs.length + '. Выберите курсы и период в фильтре сверху.</p></div>' + P.kpi + '<div class="dg2">' + P.dyn + P.rank + '</div>' + P.hm;
+    else {
+      /* главный ответ: сколько студентов сегодня в колледже */
+      var tc = dayCounts(all, td), tm = tc.total - tc.none - tc.skip, few = tm > 0 && tm < tc.total * .1, tp = tm && !few ? Math.round(tc.here / tm * 100) : null, TM = tc.total || 1;
+      var sg = function (n, col, lab) { return n ? '<div title="' + lab + ': ' + n + '" style="width:' + n / TM * 100 + '%;background:' + col + '"></div>' : ''; };
+      var hero = '<div class="card sec heroT"><div class="mut sm">' + (K.today() === td ? 'Сегодня' : 'Последний учебный день') + ', ' + K.fmtLong(td) + (tdOff ? ' · сегодня выходной' : '') + '</div>' +
+        '<div class="ht-row"><div class="ht-big">' + (tp === null ? '—' : tp + '<small>%</small>') + '</div><div class="ht-cap"><b>' + (tp === null ? (few ? 'пока мало отметок' : 'отметок за этот день пока нет') : 'студентов в колледже') + '</b>' +
+        '<span class="mut sm">' + (tp === null ? (few ? 'Отмечено ' + tm + ' из ' + tc.total + ' студентов. Процент появится, когда заполнят хотя бы десятую часть списка.' : 'Число появится, когда кураторы начнут заполнять журнал.') : tc.here + ' из ' + tm + ' отмеченных' + (tc.late ? ' · опоздали ' + tc.late : '')) + '</span>' +
+        (tp !== null && tc.none > tc.total * .3 ? '<span class="pill amb" style="align-self:flex-start;margin-top:4px">данные неполные: не отмечено ' + Math.round(tc.none / TM * 100) + '% списка</span>' : '') + '</div></div>' +
+        '<div class="ht-bar">' + sg(tc.here, 'var(--c-ok)', 'В колледже') + sg(tc.absent, 'var(--c-bad)', 'Отсутствуют') + sg(tc.skip, '#98a2b3', 'ИУП / практика') + '</div>' +
+        '<div class="xs mut ht-leg"><span><i style="background:var(--c-ok)"></i>в колледже ' + tc.here + '</span><span><i style="background:var(--c-bad)"></i>отсутствуют ' + tc.absent + '</span><span><i style="background:#98a2b3"></i>ИУП / практика ' + tc.skip + '</span><span><i style="background:rgba(var(--w),.2)"></i>не отмечено ' + tc.none + '</span></div>' +
+        '<div class="ht-fill"><div class="sm"><b>Журнал заполнили ' + done + ' из ' + all.length + ' групп</b></div><div class="bar' + (done === all.length ? ' done' : '') + '"><i style="width:' + Math.round(frac * 100) + '%"></i></div>' +
+        '<div class="xs mut" style="margin-top:6px">частично: ' + part + ' · не начали: ' + none + '</div></div></div>';
+      /* требует внимания */
+      var att = [], mr = st.missRows || [], mNone = mr.filter(function (r) { return !r.m; }).length;
+      if (miss.length) att.push({ lvl: mNone ? 'bad' : 'warn', t: 'Не заполнили журнал: ' + mr.length + ' ' + plural(mr.length, 'куратор', 'куратора', 'кураторов'), s: 'не приступали — ' + mNone + ', отметили часть — ' + (mr.length - mNone) + ' · групп: ' + miss.length, b: '<button class="btn sm" id="attCopy">Напомнить</button><button class="btn ghost sm" id="attMiss">Список</button>' });
+      var low = []; all.forEach(function (g) { var c = dayCounts([g], td), m = c.total - c.none - c.skip; if (m >= 5 && c.absent / m >= .3) low.push({ g: g, p: Math.round(c.absent / m * 100) }); });
+      low.sort(function (a, b) { return b.p - a.p; });
+      if (low.length) att.push({ lvl: 'warn', t: 'Много отсутствующих: ' + low.length + ' ' + plural(low.length, 'группа', 'группы', 'групп'), s: low.slice(0, 4).map(function (x) { return '<span class="cl attg" data-g="' + esc(x.g.id) + '">' + esc(x.g.id) + ' · ' + x.p + '%</span>'; }).join(' '), b: '' });
+      var rkN = risk.filter(function (r) { return r.unexc >= st.thr; }).length;
+      if (rkN) att.push({ lvl: 'warn', t: 'В зоне риска: ' + rkN + ' ' + plural(rkN, 'студент', 'студента', 'студентов'), s: 'от ' + st.thr + ' неуважительных пропусков за выбранный период', b: '<button class="btn ghost sm" id="attRisk">Показать</button>' });
+      var tl = S.tasks().filter(function (x) { return taskState(x) === 'late'; }).length;
+      if (tl) att.push({ lvl: 'bad', t: 'Просрочено задач: ' + tl, s: 'кураторы не отметили выполнение в срок', b: '<button class="btn ghost sm" id="attTk">К задачам</button>' });
+      var attH = '<div class="card sec attc"><h3>Требует внимания' + (att.length ? ' <span class="pill ' + (att.some(function (a) { return a.lvl === 'bad'; }) ? 'red' : 'amb') + '">' + att.length + '</span>' : '') + '</h3>' +
+        (att.length ? att.map(function (a) { return '<div class="att att-' + a.lvl + '"><div class="att-i">' + (a.lvl === 'bad' ? '!' : '•') + '</div><div class="att-t"><b>' + a.t + '</b><div class="mut sm">' + a.s + '</div></div><div class="att-b noprint">' + a.b + '</div></div>'; }).join('') : '<div class="att att-ok"><div class="att-i">✓</div><div class="att-t"><b>Всё в порядке</b><div class="mut sm">Журналы заполнены, просроченных задач нет.</div></div></div>') + '</div>';
+      h += '<div class="dh">' + hero + attH + '</div><div class="sech"><h2>За период</h2><span class="mut sm">' + K.fmtShort(st.from) + ' — ' + K.fmtShort(st.to) + ' · показатели ниже зависят от фильтра</span></div>' + F + P.kpi + P.col + P.miss + P.risk;
+    }
     app.innerHTML = h;
     bindDash();
   }
@@ -276,6 +305,11 @@
     $('#dtod').onclick = function () { st.day = null; re(); };
     $('#dday').onchange = function (e) { if (e.target.value) { st.day = e.target.value; re(); } };
     [].forEach.call(app.querySelectorAll('[data-dd]'), function (g) { g.onclick = function () { st.day = g.dataset.dd; re(); }; });
+    function toCard(id) { var el = document.getElementById(id); if (el) { try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) { el.scrollIntoView(); } } }
+    $('#attMiss').onclick = function () { st.missCollapsed = false; re(); setTimeout(function () { toCard('missCard'); }, 30); };
+    $('#attRisk').onclick = function () { toCard('riskCard'); };
+    $('#attTk').onclick = function () { st.tab = 'tk'; render(); window.scrollTo(0, 0); };
+    $('#attCopy').onclick = function () { var b = document.getElementById('missCopy'); if (b) b.click(); };
     var mt = $('#missToggle'); if (mt) mt.onclick = function () { st.missCollapsed = !st.missCollapsed; re(); };
     var mc = $('#missCopy'); if (mc) mc.onclick = function () {
       var rows = (st.missRows || []).filter(function (r) { return !r.m; });
@@ -337,7 +371,7 @@
     for (var i = 0; i < lead; i++) h += '<div></div>';
     dates.forEach(function (d) {
       var di = S.dayInfo(d), isSel = d >= calSel.a && d <= calSel.b, ne = eventsOn(d).length;
-      h += '<button class="calc" data-d="' + d + '" style="border:' + (isSel ? '2px solid var(--acc)' : '1px solid var(--line)') + ';border-radius:12px;padding:8px 2px;background:' + (di.off ? 'repeating-linear-gradient(45deg,#f1f3f8,#f1f3f8 4px,#e8ebf2 4px,#e8ebf2 8px)' : di.mode ? MODEBG[di.mode] : '#fff') + ';min-height:62px"><b>' + K.parse(d).getDate() + '</b><div class="xs ' + (di.off ? 'mut' : '') + '" style="color:' + (di.off ? '#667085' : di.mode ? MODEC[di.mode] : '#18743a') + ';line-height:1.15;margin-top:2px">' + (di.off ? esc(di.label || 'выходной').slice(0, 14) : di.mode ? MODEN[di.mode] : (di.label ? esc(di.label).slice(0, 14) : '')) + '</div>' + (di.custom ? '<div class="xs" style="color:var(--acc)">●</div>' : '') + (ne ? '<div class="xs" style="color:#ffd27a">★ ' + ne + '</div>' : '') + '</button>';
+      h += '<button class="calc" data-d="' + d + '" style="border:' + (isSel ? '2px solid var(--acc)' : '1px solid var(--line)') + ';border-radius:12px;padding:8px 2px;background:' + (di.off ? 'repeating-linear-gradient(45deg,#f1f3f8,#f1f3f8 4px,#e8ebf2 4px,#e8ebf2 8px)' : di.mode ? MODEBG[di.mode] : '#fff') + ';min-height:62px"><b>' + K.parse(d).getDate() + '</b><div class="xs ' + (di.off ? 'mut' : '') + '" style="color:' + (di.off ? '#667085' : di.mode ? MODEC[di.mode] : '#18743a') + ';line-height:1.15;margin-top:2px">' + (di.off ? esc(di.label || 'выходной').slice(0, 14) : di.mode ? MODEN[di.mode] : (di.label ? esc(di.label).slice(0, 14) : '')) + '</div>' + (di.custom ? '<div class="xs" style="color:var(--acc)">●</div>' : '') + (ne ? '<div class="xs" style="color:var(--t-warn)">★ ' + ne + '</div>' : '') + '</button>';
     });
     h += '</div><div class="xs mut" style="margin-top:10px">Штриховка — выходной. Жёлтый день — электронное обучение (задания на дом), голубой — дистанционное (пары онлайн). ★ — кураторское мероприятие. Синяя точка — день изменён вручную.</div></div>';
     h += '<div class="card sec"><h3>Изменить дни</h3><div class="filters" style="margin:0 0 8px"><label>С<input type="date" id="c1" value="' + calSel.a + '"></label><label>По<input type="date" id="c2" value="' + calSel.b + '"></label></div>' +
@@ -365,7 +399,7 @@
     $('#coff').onclick = function () { applyDays('off'); }; $('#cwork').onclick = function () { applyDays('work'); }; $('#celearn').onclick = function () { applyDays('elearn'); }; $('#cremote').onclick = function () { applyDays('remote'); }; $('#cdef').onclick = function () { applyDays(null); };
   }
   var calSel = { a: '2026-11-09', b: '2026-11-09' };
-  var MODEN = { elearn: 'Электр. обуч.', remote: 'Дистанц.' }, MODEC = { elearn: '#ffd27a', remote: '#8fd0ff' }, MODEBG = { elearn: 'rgba(255,210,122,.18)', remote: 'rgba(110,190,255,.2)' };
+  var MODEN = { elearn: 'Электр. обуч.', remote: 'Дистанц.' }, MODEC = { elearn: 'var(--t-warn)', remote: 'var(--t-blue)' }, MODEBG = { elearn: 'rgba(255,210,122,.18)', remote: 'rgba(110,190,255,.2)' };
   function eventsOn(d) { return S.events().filter(function (e) { return e.date === d; }); }
   function eventTarget(e) {
     var c = e.courses && e.courses.length ? e.courses.join(', ') + ' курс' : 'все курсы';
@@ -573,7 +607,7 @@
         '<label class="sm mut" style="display:block;margin-top:10px">Что нужно сделать<input data-f="title" type="text" value="' + esc(t ? t.title : '') + '" style="' + fs + '" autocomplete="off" placeholder="Например: сдать социальные паспорта групп"></label>' +
         '<label class="sm mut" style="display:block;margin-top:10px">Подробности (необязательно)<textarea data-f="desc" rows="3" style="' + fs + '">' + esc(t ? t.desc : '') + '</textarea></label>' +
         '<label class="sm mut" style="display:block;margin-top:10px">Срок<input data-f="due" type="date" value="' + esc(t ? t.due : '') + '" style="' + fs + '"></label>' +
-        (t ? '<div class="sm mut" style="margin-top:10px">Куратор: <b style="color:#fff">' + esc(t.cur) + '</b></div>' :
+        (t ? '<div class="sm mut" style="margin-top:10px">Куратор: <b style="color:var(--ink)">' + esc(t.cur) + '</b></div>' :
         '<div class="sm mut" style="margin-top:12px">Кому <button class="btn ghost sm" id="tkAll" style="margin-left:8px">Выбрать всех</button> <button class="btn ghost sm" id="tkNone">Снять</button></div>' +
         '<div id="tkList" style="max-height:200px;overflow:auto;margin-top:6px;border:1px solid var(--line);border-radius:11px;padding:6px 10px">' + cur.map(function (n, i) { return '<label style="display:flex;gap:8px;align-items:center;padding:4px 0"><input type="checkbox" data-n="' + i + '"> ' + esc(n) + '</label>'; }).join('') + '</div>') +
         '<div class="acts" style="display:flex;gap:8px;margin-top:16px"><button class="btn ghost" data-r="0" style="flex:1">Отмена</button><button class="btn" data-r="1" style="flex:1">' + (t ? 'Сохранить' : 'Поставить задачу') + '</button></div></div>';
@@ -600,7 +634,7 @@
     list.sort(function (a, b) { var da = a.done ? 1 : 0, db = b.done ? 1 : 0; return da - db || (a.due || '9').localeCompare(b.due || '9') || a.cur.localeCompare(b.cur, 'ru'); });
     var curs = []; all.forEach(function (t) { if (curs.indexOf(t.cur) < 0) curs.push(t.cur); }); curs.sort(function (a, b) { return a.localeCompare(b, 'ru'); });
     var h = '<div class="hero"><h1>Кураторские задачи</h1><p>Поставьте задачу одному, нескольким или всем кураторам: она появится у них на странице журнала со сроком и кнопкой «Выполнено».</p></div>' +
-      '<div class="kpis"><div class="kpi"><div class="l">В работе</div><div class="v" style="color:#ffd27a">' + (cnt.open + cnt.today) + '</div></div><div class="kpi"><div class="l">Просрочено</div><div class="v" style="color:var(--nev)">' + cnt.late + '</div></div><div class="kpi"><div class="l">Выполнено</div><div class="v" style="color:#8ff0b4">' + cnt.done + '</div></div></div>' +
+      '<div class="kpis"><div class="kpi"><div class="l">В работе</div><div class="v" style="color:var(--t-warn)">' + (cnt.open + cnt.today) + '</div></div><div class="kpi"><div class="l">Просрочено</div><div class="v" style="color:var(--nev)">' + cnt.late + '</div></div><div class="kpi"><div class="l">Выполнено</div><div class="v" style="color:var(--t-ok)">' + cnt.done + '</div></div></div>' +
       '<div class="card sec"><div class="filters" style="margin:0 0 10px"><button class="btn" id="tkNew">+ Новая задача</button><div class="chips">' + [['all', 'Все', all.length], ['open', 'В работе', cnt.open + cnt.today], ['late', 'Просроченные', cnt.late], ['done', 'Выполненные', cnt.done]].map(function (c) { return '<button class="chip' + (f === c[0] ? ' on' : '') + '" data-tf="' + c[0] + '">' + c[1] + ' <b>' + c[2] + '</b></button>'; }).join('') + '</div>' +
       '<label>Куратор<select id="tkCur"><option value="">Все</option>' + curs.map(function (n) { return '<option value="' + esc(n) + '"' + (n === fc ? ' selected' : '') + '>' + esc(K.shortName(n)) + '</option>'; }).join('') + '</select></label></div>';
     if (!list.length) h += '<div class="empty">' + (all.length ? 'По выбранному фильтру задач нет.' : 'Задач пока нет. Нажмите «+ Новая задача».') + '</div>';
@@ -655,12 +689,12 @@
   }
 
   function render() {
-    [].forEach.call(document.querySelectorAll('#tabs button, .rail button'), function (b) { b.classList.toggle('on', b.dataset.t === st.tab); b.style.color = b.dataset.t === st.tab ? '' : '#cfe0ff'; });
+    [].forEach.call(document.querySelectorAll('#tabs button, .rail button'), function (b) { b.classList.toggle('on', b.dataset.t === st.tab); b.style.color = ''; });
     if (st.tab === 'dash' || st.tab === 'an') dash(); else if (st.tab === 'tk') tasks(); else if (st.tab === 'cal') { cal(); bindRm(); } else if (st.tab === 'ros') roster(); else log();
   }
   function bindRm() { [].forEach.call(app.querySelectorAll('[data-rm]'), function (b) { b.onclick = function () { S.setDay(b.dataset.rm, null); }; }); }
   function init() {
-    app = $('#app'); $('#helpA').onclick = helpAdmin; UI.demoBar($('#demo'), 'Данные: октябрь 2026 (2–4 курсы) и ноябрь 2026 (1 курс), ФИО студентов обезличены. Страница куратора открывается отдельно: <a href="index.html" target="_blank">index.html</a> — отметки оттуда сразу появляются здесь.');
+    app = $('#app'); $('#helpA').onclick = helpAdmin; UI.themeBtn($('#themeBtn')); UI.demoBar($('#demo'), 'Данные: октябрь 2026 (2–4 курсы) и ноябрь 2026 (1 курс), ФИО студентов обезличены. Страница куратора открывается отдельно: <a href="index.html" target="_blank">index.html</a> — отметки оттуда сразу появляются здесь.');
     [].forEach.call(document.querySelectorAll('#tabs button, .rail button'), function (b) { b.onclick = function () { st.tab = b.dataset.t; $('#drawer').classList.remove('on'); render(); window.scrollTo(0, 0); }; });
     S.onChange(function () { var sc = window.scrollY; render(); window.scrollTo(0, sc); });
     render();
