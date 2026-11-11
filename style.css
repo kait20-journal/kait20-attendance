@@ -260,3 +260,10 @@ table.mx td.c{color:inherit}
 .dg-r .card svg{max-height:250px;width:100%}
 @media(max-width:760px){.app .top .wrap{flex-wrap:wrap;padding:10px}.app .tabs{width:100%;display:flex;overflow-x:auto}.app .tabs button{flex:1 0 auto;white-space:nowrap;padding:9px 12px}.app .top .brand{width:100%}.top .sp{display:none}}
 @media(max-width:760px){.card.sec{overflow-x:auto}}
+/* календарь: читаемые ячейки */
+.calc{color:#fff}
+.calc[style*="background:#fff"]{background:rgba(255,255,255,.14)!important}
+.calc[style*="repeating-linear-gradient"]{background:repeating-linear-gradient(45deg,rgba(255,255,255,.04),rgba(255,255,255,.04) 4px,rgba(255,255,255,.09) 4px,rgba(255,255,255,.09) 8px)!important}
+.calc b{color:#fff}
+.calc .xs{color:rgba(255,255,255,.72)!important}.calc .xs:not(.mut){color:#b9f7d0!important}
+.calc:hover{background:rgba(255,255,255,.24)!important}
