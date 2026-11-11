@@ -469,7 +469,7 @@
 
   /* ---------- кураторские задачи ---------- */
   function taskState(t) { if (t.done) return 'done'; if (t.due && t.due < K.today()) return 'late'; if (t.due === K.today()) return 'today'; return 'open'; }
-  var TSL = { open: ['в работе', 'gr'], today: ['срок сегодня', 'amb'], late: ['просрочена', 'red'], done: ['выполнена', 'gr'] };
+  var TSL = { open: ['⏳ в работе', 'wk'], today: ['⏰ срок сегодня', 'amb'], late: ['⚠ просрочена', 'red'], done: ['✓ выполнена', 'gr'] };
   function taskForm(t) {
     return new Promise(function (res) {
       var cur = S.curators().map(function (c) { return c.name; }), ov = document.createElement('div'); ov.className = 'ov on'; ov.style.zIndex = 90; ov.style.alignItems = 'center';
@@ -505,13 +505,13 @@
     list.sort(function (a, b) { var da = a.done ? 1 : 0, db = b.done ? 1 : 0; return da - db || (a.due || '9').localeCompare(b.due || '9') || a.cur.localeCompare(b.cur, 'ru'); });
     var curs = []; all.forEach(function (t) { if (curs.indexOf(t.cur) < 0) curs.push(t.cur); }); curs.sort(function (a, b) { return a.localeCompare(b, 'ru'); });
     var h = '<div class="hero"><h1>Кураторские задачи</h1><p>Поставьте задачу одному, нескольким или всем кураторам: она появится у них на странице журнала со сроком и кнопкой «Выполнено».</p></div>' +
-      '<div class="kpis"><div class="kpi"><div class="l">В работе</div><div class="v">' + (cnt.open + cnt.today) + '</div></div><div class="kpi"><div class="l">Просрочено</div><div class="v" style="color:var(--nev)">' + cnt.late + '</div></div><div class="kpi"><div class="l">Выполнено</div><div class="v">' + cnt.done + '</div></div></div>' +
-      '<div class="card sec"><div class="filters" style="margin:0 0 10px"><button class="btn" id="tkNew">+ Новая задача</button><div class="chips">' + [['all', 'Все'], ['open', 'В работе'], ['late', 'Просроченные'], ['done', 'Выполненные']].map(function (c) { return '<button class="chip' + (f === c[0] ? ' on' : '') + '" data-tf="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
+      '<div class="kpis"><div class="kpi"><div class="l">В работе</div><div class="v" style="color:#ffd27a">' + (cnt.open + cnt.today) + '</div></div><div class="kpi"><div class="l">Просрочено</div><div class="v" style="color:var(--nev)">' + cnt.late + '</div></div><div class="kpi"><div class="l">Выполнено</div><div class="v" style="color:#8ff0b4">' + cnt.done + '</div></div></div>' +
+      '<div class="card sec"><div class="filters" style="margin:0 0 10px"><button class="btn" id="tkNew">+ Новая задача</button><div class="chips">' + [['all', 'Все', all.length], ['open', 'В работе', cnt.open + cnt.today], ['late', 'Просроченные', cnt.late], ['done', 'Выполненные', cnt.done]].map(function (c) { return '<button class="chip' + (f === c[0] ? ' on' : '') + '" data-tf="' + c[0] + '">' + c[1] + ' <b>' + c[2] + '</b></button>'; }).join('') + '</div>' +
       '<label>Куратор<select id="tkCur"><option value="">Все</option>' + curs.map(function (n) { return '<option value="' + esc(n) + '"' + (n === fc ? ' selected' : '') + '>' + esc(K.shortName(n)) + '</option>'; }).join('') + '</select></label></div>';
     if (!list.length) h += '<div class="empty">' + (all.length ? 'По выбранному фильтру задач нет.' : 'Задач пока нет. Нажмите «+ Новая задача».') + '</div>';
     else h += '<table class="tb"><thead><tr><th>Куратор</th><th>Задача</th><th>Срок</th><th>Статус</th><th></th></tr></thead><tbody>' + list.map(function (t) {
       var k = taskState(t), sl = TSL[k];
-      return '<tr><td style="white-space:nowrap">' + esc(K.shortName(t.cur)) + '</td><td><b>' + esc(t.title) + '</b>' + (t.desc ? '<div class="mut sm">' + esc(t.desc) + '</div>' : '') + '</td><td style="white-space:nowrap">' + (t.due ? K.fmtShort(t.due) : '—') + '</td><td><span class="pill ' + sl[1] + '">' + sl[0] + '</span>' + (t.done ? '<div class="xs mut">' + K.fmtShort(t.done) + '</div>' : '') + '</td>' +
+      return '<tr class="tk tk-' + k + '"><td style="white-space:nowrap">' + esc(K.shortName(t.cur)) + '</td><td><b>' + esc(t.title) + '</b>' + (t.desc ? '<div class="mut sm">' + esc(t.desc) + '</div>' : '') + '</td><td style="white-space:nowrap">' + (t.due ? K.fmtShort(t.due) : '—') + '</td><td><span class="pill ' + sl[1] + '">' + sl[0] + '</span>' + (t.done ? '<div class="xs mut">' + K.fmtShort(t.done) + '</div>' : (t.due ? '<div class="xs mut">до ' + K.fmtShort(t.due) + '</div>' : '')) + '</td>' +
         '<td style="text-align:right;white-space:nowrap"><button class="btn ghost sm" data-ta="done" data-id="' + t.id + '">' + (t.done ? 'Вернуть' : '✓ Выполнено') + '</button> <button class="btn ghost sm" data-ta="edit" data-id="' + t.id + '">Изменить</button> <button class="btn ghost sm" data-ta="del" data-id="' + t.id + '">Удалить</button></td></tr>';
     }).join('') + '</tbody></table>';
     app.innerHTML = h + '</div>';
