@@ -301,3 +301,22 @@ body::after{right:-18vmax;bottom:-18vmax;background:radial-gradient(circle,rgba(
 .rw:hover .tr{filter:brightness(1.2)}
 .rw{cursor:pointer}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* единая палитра графиков и тёмные полосы прокрутки */
+*{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.26);border-radius:10px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.42);background-clip:padding-box}::-webkit-scrollbar-corner{background:transparent}
+[style*="background:#e5483b"]{background:#ff7a68!important}[style*="background:#7aa2f7"]{background:#7fb5ff!important}
+[style*="color:#e5483b"]{color:#ff7a68!important}[style*="color:#7aa2f7"]{color:#7fb5ff!important}
+rect[fill="#e5483b"]{fill:#ff7a68}rect[fill="#7aa2f7"]{fill:#7fb5ff}
+.hm{border-radius:14px}table.hm td.h{border-radius:6px}table.hm td.h[style*="#f1f3f8"]{background:rgba(255,255,255,.06)!important}
+.hmlegend i[style*="#f1f3f8"]{background:rgba(255,255,255,.1)!important}
+.card.sec h3{letter-spacing:.2px}
+/* «Не заполнили»: чипы групп в стиле стекла */
+.misscard .cl{transition:transform .18s,background .18s,box-shadow .18s;backdrop-filter:blur(6px)}
+.misscard .cl[style*="background:#fff1ef"]{background:rgba(255,122,104,.16)!important;color:#ffb0a4!important;border:1px solid rgba(255,122,104,.38);border-radius:999px!important;padding:3px 11px!important}
+.misscard .cl[style*="background:#fff6dc"]{background:rgba(255,210,122,.15)!important;color:#ffd98a!important;border:1px solid rgba(255,210,122,.38);border-radius:999px!important;padding:3px 11px!important}
+.misscard .cl:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.misscard .cl[style*="background:#fff1ef"]:hover{background:rgba(255,122,104,.3)!important}.misscard .cl[style*="background:#fff6dc"]:hover{background:rgba(255,210,122,.28)!important}
+.misscard [style*="border-top:1px solid var(--line)"]{border-top-color:rgba(255,255,255,.1)!important}
+.misscard span[style*="color:#b0241a"]{color:#ff9d90!important}.misscard span[style*="color:#8a5300"]{color:#ffd27a!important}
