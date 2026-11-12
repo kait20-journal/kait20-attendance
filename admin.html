@@ -323,8 +323,8 @@
     $('#pr').onclick = function () { try { window.print(); } catch (e) { UI.toast('Печать недоступна в этом окне'); } };
     [].forEach.call(app.querySelectorAll('.xlm'), function (btn) { btn.onclick = function () {
       var p = btn.dataset.m.split('-'), y = +p[0], mo = +p[1] - 1, ds = K.monthDates(y, mo, false);
-      var ids = fgroups().filter(function (g) { return g.all.some(function (s) { return ds.some(function (d) { return S.get(g.id, s.id, d); }); }); }).map(function (g) { return g.id; });
-      if (!ids.length) { UI.toast('За этот месяц нет данных по выбранным группам'); return; }
+      var ids = fgroups().filter(function (g) { return S.rosterIn(g, ds).length; }).map(function (g) { return g.id; });
+      if (!ids.length) { UI.toast('В выбранных группах нет студентов за этот месяц'); return; }
       var bytes = K.exportTabel(y, mo, ids), name = 'Табель_' + K.MONTHS[mo] + '_' + y + '.xlsx', blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       function plain() { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); UI.toast('Табель скачан'); }
       if (window.claude && window.claude.use) {
@@ -457,7 +457,7 @@
     var gs = S.groups(); if (!st.rg || !S.group(st.rg)) st.rg = gs[0] ? gs[0].id : '';
     var g = S.group(st.rg), t = K.today();
     var h = '<div class="hero"><h1>Состав групп</h1><p>Добавляйте новых студентов, отмечайте выбывших, переводите между группами и меняйте куратора. История отметок сохраняется.</p></div>' +
-      '<div class="card sec"><h3>Списки и учебный год</h3><div class="mut sm">Загрузите список групп из Excel (лист = группа, либо колонки «Группа» и «ФИО», при желании «Куратор») — новые группы и студенты добавятся, уже имеющиеся не задвоятся. В начале года нажмите «Новый учебный год».</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="rimp">📥 Загрузить списки из Excel</button><button class="btn ghost" id="rtpl">Скачать шаблон Excel</button><button class="btn ghost" id="rroll">🎓 Новый учебный год</button></div></div><div class="card sec">';
+      '<div class="card sec"><h3>Списки и учебный год</h3><div class="mut sm">Загрузите список групп из Excel (лист = группа, либо колонки «Группа» и «ФИО», при желании «Куратор») — новые группы и студенты добавятся, уже имеющиеся не задвоятся. В начале года нажмите «Новый учебный год».</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="rimp">📥 Загрузить списки из Excel</button><button class="btn ghost" id="rtpl">Скачать шаблон Excel</button><button class="btn ghost" id="rexp">⬇ Выгрузить все группы в Excel</button><button class="btn ghost" id="rroll">🎓 Новый учебный год</button></div></div><div class="card sec">';
     h += '<div class="filters" style="margin:0 0 12px"><label>Группа<select id="rg">' + gs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === st.rg ? ' selected' : '') + '>' + esc(x.name) + ' · ' + x.course + ' курс</option>'; }).join('') + '</select></label></div>';
     if (!g) { app.innerHTML = h + '<div class="empty">Групп нет.</div></div>'; bindTools(); return; }
     var act = g.all.filter(function (s) { return !s.left || s.left >= t; }), gone = g.all.filter(function (s) { return s.left && s.left < t; });
@@ -502,6 +502,23 @@
   function rollId(id, course) { var m = /^(\D+)(\d)(.*)$/.exec(id); return m && +m[2] === course ? m[1] + (course + 1) + m[3] : id; }
   function bindTools() {
     var a = $('#rimp'), b = $('#rtpl'), c = $('#rroll'), l = $('#rlinks');
+    var ex = $('#rexp');
+    if (ex) ex.onclick = function () {
+      var gs = S.groups().slice().sort(function (x, y) { return (x.course - y.course) || String(x.name || x.id).localeCompare(String(y.name || y.id), 'ru'); });
+      var sum = [['Курс', 'Группа', 'Куратор', 'Студентов']], all = [['Курс', 'Группа', '№', 'ФИО', 'Куратор']], cur = {};
+      gs.forEach(function (g) {
+        var nm = g.name || g.id, k = g.curator || '—', st2 = g.students || [];
+        sum.push([g.course, nm, k, st2.length]);
+        st2.forEach(function (s, i) { all.push([g.course, nm, i + 1, s.fio, k]); });
+        (cur[k] = cur[k] || { g: [], n: 0 }); cur[k].g.push(nm); cur[k].n += st2.length;
+      });
+      var byK = [['Куратор', 'Группы', 'Студентов']].concat(Object.keys(cur).sort().map(function (k) { return [k, cur[k].g.join(', '), cur[k].n]; }));
+      saveBlob(K.buildXlsx([
+        { name: 'Группы и кураторы', rows: sum, widths: [8, 14, 38, 12], headerRows: 1 },
+        { name: 'Все студенты', rows: all, widths: [8, 14, 6, 42, 38], headerRows: 1 },
+        { name: 'По кураторам', rows: byK, widths: [38, 40, 12], headerRows: 1 }
+      ]), 'Группы_и_кураторы_все_курсы.xlsx', XLSX_T);
+    };
     if (a) a.onclick = function () {
       var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.xlsx,.csv,.tsv,.txt';
       inp.onchange = function () {
