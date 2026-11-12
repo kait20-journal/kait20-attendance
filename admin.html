@@ -8,6 +8,19 @@
 <title>КАИТ-20 · Посещаемость — панель заведующего отделения</title>
 <script>(function(){var t="";try{t=localStorage.getItem("kait.theme")||""}catch(e){}if(t!=="light"&&t!=="dark")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.setAttribute("data-theme",t)})()</script>
 <link rel="stylesheet" href="style.css">
+<style id="opsCss">
+.opr{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line)}
+.opr.p{background:rgba(24,160,80,.10)}.opr.a{background:rgba(220,60,40,.10)}.opr.u{background:rgba(220,160,40,.12)}
+.opn{width:26px;text-align:right;color:var(--mut);font-size:13px;flex:none}
+.opw{flex:1;min-width:0}.opw b{font-weight:700}
+.opbs{display:flex;gap:6px;flex:none}
+.opb{border:1px solid var(--line);background:rgba(var(--w),.08);color:inherit;border-radius:10px;padding:8px 12px;font-size:14px;font-weight:600;min-width:62px;cursor:pointer}
+.opb.g.on{background:var(--t-ok);border-color:var(--t-ok);color:#0b1f12}.opb.r.on{background:var(--t-bad);border-color:var(--t-bad);color:#2a0b07}.opb.y.on{background:var(--t-warn);border-color:var(--t-warn);color:#2a1a00}
+html[data-theme=light] .opb.on{color:#fff}
+.opb.x{min-width:0;padding:8px 10px}
+.opbar{height:8px;border-radius:99px;background:rgba(var(--w),.14);margin-top:10px;overflow:hidden}.opbar i{display:block;height:100%;background:var(--t-ok);border-radius:99px;transition:width .2s}
+@media(max-width:640px){.opr{flex-wrap:wrap}.opbs{width:100%;padding-left:36px}.opb{flex:1;padding:11px 8px}}
+</style>
 </head>
 <body>
 <div class="gate" id="gate"><div class="box">
@@ -29,13 +42,14 @@
   <button data-t="tk" title="Задачи" aria-label="Задачи"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 9l2 2 4-4M8 16h8"/></svg></button>
   <button data-t="ros" title="Состав групп" aria-label="Состав групп"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.5 3.3-5.5 6.5-5.5s5.9 2 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 010 6.8M18 14.8c2 .7 3.2 2.4 3.5 5.2"/></svg></button>
   <button data-t="log" title="Журнал" aria-label="Журнал"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 11h8M8 15h8"/></svg></button>
+  <button data-t="ops" title="Оперативка" aria-label="Оперативка"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="17" rx="3"/><path d="M9 4v3h6V4M8.5 13l2 2 4-4"/></svg></button>
 </nav>
 <div class="mainc">
 <div class="top"><div class="wrap">
   <div class="brand"><div class="logo">К20</div><div>КАИТ-20 · Посещаемость<small>Панель заведующего отделения</small></div></div>
   <div class="sp"></div>
   <div class="tabs" id="tabs" style="background:rgba(255,255,255,.12)">
-    <button data-t="dash" class="on" style="color:#fff">Дашборд</button><button data-t="an" style="color:#cfe0ff">Аналитика</button><button data-t="tk" style="color:#cfe0ff">Задачи</button><button data-t="cal" style="color:#cfe0ff">Календарь дней</button><button data-t="ros" style="color:#cfe0ff">Состав групп</button><button data-t="log" style="color:#cfe0ff">Журнал</button>
+    <button data-t="dash" class="on" style="color:#fff">Дашборд</button><button data-t="an" style="color:#cfe0ff">Аналитика</button><button data-t="tk" style="color:#cfe0ff">Задачи</button><button data-t="cal" style="color:#cfe0ff">Календарь дней</button><button data-t="ros" style="color:#cfe0ff">Состав групп</button><button data-t="log" style="color:#cfe0ff">Журнал</button><button data-t="ops" style="color:#cfe0ff">Оперативка</button>
   </div>
   <button class="btn ghost sm" id="themeBtn" title="Светлая / тёмная тема" aria-label="Светлая или тёмная тема" style="margin-left:8px"></button>
   <button class="btn ghost sm" id="helpA" title="Как пользоваться" style="margin-left:8px">? Помощь</button>
@@ -700,14 +714,139 @@
       '<li><b>Задачи</b> — кураторские задачи со сроком; статус виден цветом.</li>' +
       '<li><b>Календарь дней</b> — праздники РФ уже проставлены. Выберите дни и нажмите: выходные, электронное или дистанционное обучение. Здесь же кураторские мероприятия.</li>' +
       '<li><b>Состав групп</b> — загрузка списков из Excel, новый учебный год, студенты, кураторы и их личные ссылки (там можно сменить ссылку).</li>' +
+      '<li><b>Оперативка</b> — список сотрудников для отметки присутствия на совещании; список хранится только в этом браузере.</li>' +
       '<li><b>Журнал</b> — кто и что менял; кнопка «↩ Отменить» возвращает прежнюю отметку.</li>' +
       '<li>В карточке группы есть «Выгрузка группы в Excel».</li></ul><button class="btn" id="helpOk" style="width:100%;margin-top:14px">Понятно</button></div>';
     document.body.appendChild(ov); ov.querySelector('#helpOk').onclick = function () { ov.remove(); }; ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
   }
 
+  /* ---------- оперативка: отметка сотрудников на совещании (данные только в этом браузере) ---------- */
+  var OPSK = 'kait.ops.v1';
+  function opsLoad() { try { var d = JSON.parse(localStorage.getItem(OPSK) || 'null'); if (d && d.staff && d.mt) return d; } catch (e) {} return { staff: [], mt: {} }; }
+  function opsSave(d) { try { localStorage.setItem(OPSK, JSON.stringify(d)); return true; } catch (e) { UI.toast('Не удалось сохранить: в браузере нет места или запрещено хранение'); return false; } }
+  function cleanS(s) { return String(s == null ? '' : s).replace(/[ \s]+/g, ' ').trim(); }
+  function opsSort(d) { d.staff.sort(function (a, b) { return a.fio.localeCompare(b.fio, 'ru'); }); }
+  function opsDateRu(s) { var p = s.split('-'); return p[2] + '.' + p[1] + '.' + p[0]; }
+  function opsMeet(d, date) { return d.mt[date] || (d.mt[date] = { title: 'Оперативное совещание', m: {} }); }
+  function opsCnt(d, date) {
+    var m = (d.mt[date] || { m: {} }).m, c = { p: 0, a: 0, u: 0, n: 0, all: d.staff.length };
+    d.staff.forEach(function (s) { var v = m[s.id]; if (v === '1') c.p++; else if (v === '0') c.a++; else if (v === 'u') c.u++; else c.n++; });
+    return c;
+  }
+  function opsImport(d, rows) {
+    var hr = -1, ci = 0, cp = -1, i, j;
+    for (i = 0; i < Math.min(rows.length, 15) && hr < 0; i++) for (j = 0; j < (rows[i] || []).length; j++) if (/^фио$/i.test(cleanS(rows[i][j]))) { hr = i; ci = j; }
+    if (hr >= 0) for (j = 0; j < rows[hr].length; j++) if (/должност/i.test(cleanS(rows[hr][j]))) cp = j;
+    var have = {}, add = 0, upd = 0; d.staff.forEach(function (s) { have[K.normFio(s.fio)] = s; });
+    for (i = hr + 1; i < rows.length; i++) {
+      var r = rows[i] || [], fio = cleanS(r[ci]); if (!fio || !/[А-Яа-яЁё]/.test(fio) || /^(№|фио)/i.test(fio)) continue;
+      var pos = cp >= 0 ? cleanS(r[cp]) : '', k = K.normFio(fio);
+      if (have[k]) { if (pos && have[k].pos !== pos) { have[k].pos = pos; upd++; } }
+      else { var s = { id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), fio: fio, pos: pos }; d.staff.push(s); have[k] = s; add++; }
+    }
+    opsSort(d); return { add: add, upd: upd };
+  }
+  function opsPickFile() {
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.xlsx,.csv,.tsv,.txt';
+    inp.onchange = function () {
+      var f = inp.files[0]; if (!f) return;
+      K.readSheets(f).then(function (sh) {
+        var d = opsLoad(), sheet = sh[0]; if (!sheet) { UI.toast('Файл пустой'); return; }
+        var r = opsImport(d, sheet.rows); if (!r.add && !r.upd) { UI.toast('Не нашёл ФИО сотрудников. Нужна колонка «ФИО» (и «Должность»).'); return; }
+        opsSave(d); UI.toast('Добавлено сотрудников: ' + r.add + (r.upd ? ', обновлено должностей: ' + r.upd : '')); ops();
+      }).catch(function (e) { UI.toast('Не удалось прочитать файл: ' + (e && e.message || e)); });
+    };
+    inp.click();
+  }
+  function opsRows(d, q, f, date) {
+    var m = (d.mt[date] || { m: {} }).m, qq = q ? q.toLowerCase().replace(/ё/g, 'е') : '';
+    return d.staff.filter(function (s) {
+      var v = m[s.id] || ''; if (f === 'n' && v) return false; if (f === 'a' && v !== '0' && v !== 'u') return false; if (f === 'p' && v !== '1') return false;
+      return !qq || (s.fio + ' ' + s.pos).toLowerCase().replace(/ё/g, 'е').indexOf(qq) >= 0;
+    });
+  }
+  function opsBtn(s, v, code, label, cls) {
+    var on = v === code;
+    return '<button class="opb ' + cls + (on ? ' on' : '') + '" data-id="' + esc(s.id) + '" data-c="' + code + '" aria-pressed="' + on + '">' + label + '</button>';
+  }
+  function opsList(d, o) {
+    var m = (d.mt[o.date] || { m: {} }).m, rows = opsRows(d, o.q, o.f, o.date);
+    if (!rows.length) return '<div class="empty">' + (o.q || o.f !== 'all' ? 'Нет сотрудников по этому фильтру.' : 'Список пуст.') + '</div>';
+    return rows.map(function (s, i) {
+      var v = m[s.id] || '';
+      return '<div class="opr' + (v === '1' ? ' p' : v === '0' ? ' a' : v === 'u' ? ' u' : '') + '"><span class="opn">' + (d.staff.indexOf(s) + 1) + '</span><div class="opw"><b>' + esc(s.fio) + '</b><div class="mut xs">' + esc(s.pos || '') + '</div></div>' +
+        '<div class="opbs">' + opsBtn(s, v, '1', '✓ Был', 'g') + opsBtn(s, v, '0', 'Нет', 'r') + opsBtn(s, v, 'u', 'Уваж.', 'y') + (o.edit ? '<button class="opb x" data-del="' + esc(s.id) + '" title="Удалить из списка">✕</button>' : '') + '</div></div>';
+    }).join('');
+  }
+  function opsExport(d, date) {
+    var mt = d.mt[date] || { title: 'Оперативное совещание', m: {} }, lab = { '1': 'присутствует', '0': 'отсутствует', 'u': 'уважительная причина' }, c = opsCnt(d, date);
+    var rows = [[(mt.title || 'Оперативное совещание') + ' · ' + opsDateRu(date)], [], ['№', 'ФИО', 'Должность', 'Присутствие']];
+    d.staff.forEach(function (s, i) { rows.push([i + 1, s.fio, s.pos, lab[mt.m[s.id]] || 'не отмечен']); });
+    rows.push([]); rows.push(['', 'Присутствуют: ' + c.p + ' · отсутствуют: ' + c.a + ' · уважительная причина: ' + c.u + ' · не отмечены: ' + c.n + ' · всего: ' + c.all]);
+    var dates = Object.keys(d.mt).sort(), hist = [['Сотрудник', 'Должность'].concat(dates.map(opsDateRu)).concat(['Был', 'Всего совещаний'])];
+    d.staff.forEach(function (s) { var n = 0; hist.push([s.fio, s.pos].concat(dates.map(function (x) { var v = d.mt[x].m[s.id]; if (v === '1') n++; return v === '1' ? '+' : v === '0' ? 'н' : v === 'u' ? 'у' : ''; })).concat([n, dates.length])); });
+    hist.push([]); hist.push(['Обозначения: + был, н отсутствовал, у уважительная причина, пусто не отмечен']);
+    saveBlob(K.buildXlsx([
+      { name: 'Совещание', rows: rows, widths: [6, 40, 40, 22], headerRows: 3 },
+      { name: 'Все совещания', rows: hist, widths: [40, 34].concat(dates.map(function () { return 11; })).concat([8, 14]), headerRows: 1 }
+    ]), 'Оперативка_' + date + '.xlsx', XLSX_T);
+  }
+  function ops() {
+    var d = opsLoad(), o = st.ops = st.ops || { date: K.today(), q: '', f: 'all', edit: false }, h;
+    if (!o.date) o.date = K.today();
+    h = '<div class="hero"><h1>Оперативка</h1><p>Отмечайте, кто пришёл на совещание. Список сотрудников хранится только в этом браузере и в интернет не уходит.</p></div>';
+    if (!d.staff.length) {
+      app.innerHTML = h + '<div class="card sec"><h3>Загрузите список сотрудников</h3><div class="mut sm">Excel-файл с колонками «ФИО» и «Должность» (телефоны не нужны, они не сохраняются). Список остаётся на этом компьютере. Позже его можно дополнить новым файлом: повторы не задвоятся.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="opImp">📥 Загрузить список из Excel</button><button class="btn ghost" id="opAdd">+ Добавить сотрудника вручную</button></div></div>';
+      $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { opsAdd(); }; return;
+    }
+    var c = opsCnt(d, o.date), hist = Object.keys(d.mt).filter(function (x) { return opsCnt(d, x).p + opsCnt(d, x).a + opsCnt(d, x).u > 0; }).sort().reverse();
+    h += '<div class="card sec"><div class="filters" style="margin:0 0 12px"><label>Дата совещания<input type="date" id="opDate" value="' + o.date + '"></label><label style="flex:1;min-width:200px">Название<input id="opTitle" value="' + esc((d.mt[o.date] || {}).title || 'Оперативное совещание') + '" style="width:100%"></label>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="opAllP">✓ Все присутствуют</button><button class="btn ghost" id="opClr">Сбросить отметки</button></div></div>' +
+      '<div id="opCnt"></div>' +
+      '<div class="filters" style="margin:12px 0 8px"><label style="flex:1;min-width:200px">Поиск<input id="opQ" placeholder="Фамилия или должность" value="' + esc(o.q) + '" style="width:100%"></label>' +
+      '<div class="chips" id="opF">' + [['all', 'Все'], ['n', 'Не отмечены'], ['a', 'Отсутствуют'], ['p', 'Присутствуют']].map(function (x) { return '<button class="chip' + (o.f === x[0] ? ' on' : '') + '" data-f="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div></div>' +
+      '<div id="opList"></div></div>' +
+      '<div class="card sec"><h3>Действия</h3><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" id="opXl">⬇ Выгрузить в Excel</button><button class="btn ghost" id="opCopy">📋 Скопировать, кого нет</button><button class="btn ghost" id="opImp">📥 Добавить из Excel</button><button class="btn ghost" id="opAdd">+ Сотрудник</button><button class="btn ghost" id="opEdit">' + (o.edit ? 'Готово' : '✎ Изменить список') + '</button></div></div>';
+    if (hist.length) h += '<div class="card sec"><h3>Прошлые совещания</h3><table class="tb"><thead><tr><th>Дата</th><th>Название</th><th>Присутствовали</th><th></th></tr></thead><tbody>' + hist.map(function (x) { var k = opsCnt(d, x); return '<tr><td>' + opsDateRu(x) + '</td><td>' + esc(d.mt[x].title || '') + '</td><td>' + k.p + ' из ' + k.all + (k.a ? ' · нет: ' + k.a : '') + (k.u ? ' · уваж.: ' + k.u : '') + '</td><td><button class="btn ghost sm" data-open="' + x + '">Открыть</button></td></tr>'; }).join('') + '</tbody></table></div>';
+    app.innerHTML = h;
+    function paint() {
+      var cc = opsCnt(d, o.date), done = cc.p + cc.a + cc.u;
+      $('#opCnt').innerHTML = '<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline"><span style="font-size:28px;font-weight:800">' + cc.p + '<span class="mut" style="font-size:16px;font-weight:600"> из ' + cc.all + ' присутствуют</span></span><span class="pill red">нет: ' + cc.a + '</span><span class="pill amb">уваж.: ' + cc.u + '</span><span class="pill">не отмечено: ' + cc.n + '</span></div><div class="opbar"><i style="width:' + (cc.all ? Math.round(done * 100 / cc.all) : 0) + '%"></i></div>';
+      $('#opList').innerHTML = opsList(d, o);
+      [].forEach.call(app.querySelectorAll('.opb[data-c]'), function (b) { b.onclick = function () {
+        var mt = opsMeet(d, o.date), id = b.dataset.id, v = b.dataset.c; if (mt.m[id] === v) delete mt.m[id]; else mt.m[id] = v; opsSave(d);
+        if (o.f !== 'all') paint(); else { paint(); } };
+      });
+      [].forEach.call(app.querySelectorAll('[data-del]'), function (b) { b.onclick = function () { var s = d.staff.filter(function (x) { return x.id === b.dataset.del; })[0]; UI.ask('Удалить «' + (s ? s.fio : '') + '» из списка? Прошлые отметки этого человека тоже исчезнут.', 'Удалить').then(function (ok) { if (!ok) return; d.staff = d.staff.filter(function (x) { return x.id !== b.dataset.del; }); Object.keys(d.mt).forEach(function (k) { delete d.mt[k].m[b.dataset.del]; }); opsSave(d); ops(); }); }; });
+    }
+    paint();
+    $('#opDate').onchange = function () { if (this.value) { o.date = this.value; ops(); } };
+    $('#opTitle').onchange = function () { opsMeet(d, o.date).title = cleanS(this.value) || 'Оперативное совещание'; opsSave(d); };
+    $('#opQ').oninput = function () { o.q = this.value; paint(); };
+    [].forEach.call(app.querySelectorAll('#opF .chip'), function (b) { b.onclick = function () { o.f = b.dataset.f; ops(); }; });
+    $('#opAllP').onclick = function () { var mt = opsMeet(d, o.date); d.staff.forEach(function (s) { if (!mt.m[s.id]) mt.m[s.id] = '1'; }); opsSave(d); paint(); UI.toast('Неотмеченные отмечены как присутствующие'); };
+    $('#opClr').onclick = function () { UI.ask('Сбросить все отметки за ' + opsDateRu(o.date) + '?', 'Сбросить').then(function (ok) { if (!ok) return; opsMeet(d, o.date).m = {}; opsSave(d); paint(); }); };
+    $('#opXl').onclick = function () { opsExport(d, o.date); };
+    $('#opCopy').onclick = function () {
+      var m = (d.mt[o.date] || { m: {} }).m, a = d.staff.filter(function (s) { return m[s.id] === '0'; }), u = d.staff.filter(function (s) { return m[s.id] === 'u'; }), n = d.staff.filter(function (s) { return !m[s.id]; });
+      var t = 'Оперативка ' + opsDateRu(o.date) + '\nПрисутствуют: ' + c0() + ' из ' + d.staff.length + (a.length ? '\n\nОтсутствуют:\n' + a.map(function (s) { return '— ' + s.fio; }).join('\n') : '') + (u.length ? '\n\nУважительная причина:\n' + u.map(function (s) { return '— ' + s.fio; }).join('\n') : '') + (n.length ? '\n\nНе отмечены:\n' + n.map(function (s) { return '— ' + s.fio; }).join('\n') : '');
+      function c0() { return opsCnt(d, o.date).p; }
+      UI.copyBox('Кого нет на оперативке', t, 'Текст выделен: нажмите «Скопировать» или Ctrl+C.');
+    };
+    $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { opsAdd(); };
+    $('#opEdit').onclick = function () { o.edit = !o.edit; ops(); };
+    [].forEach.call(app.querySelectorAll('[data-open]'), function (b) { b.onclick = function () { o.date = b.dataset.open; window.scrollTo(0, 0); ops(); }; });
+  }
+  function opsAdd() {
+    var fio = window.prompt('ФИО сотрудника'); if (!fio || !cleanS(fio)) return;
+    var pos = window.prompt('Должность (можно пропустить)') || '', d = opsLoad(), k = K.normFio(cleanS(fio));
+    if (d.staff.some(function (s) { return K.normFio(s.fio) === k; })) { UI.toast('Такой сотрудник уже есть в списке'); return; }
+    d.staff.push({ id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), fio: cleanS(fio), pos: cleanS(pos) }); opsSort(d); opsSave(d); ops();
+  }
+
   function render() {
     [].forEach.call(document.querySelectorAll('#tabs button, .rail button'), function (b) { b.classList.toggle('on', b.dataset.t === st.tab); b.style.color = ''; });
-    if (st.tab === 'dash' || st.tab === 'an') dash(); else if (st.tab === 'tk') tasks(); else if (st.tab === 'cal') { cal(); bindRm(); } else if (st.tab === 'ros') roster(); else log();
+    if (st.tab === 'dash' || st.tab === 'an') dash(); else if (st.tab === 'tk') tasks(); else if (st.tab === 'cal') { cal(); bindRm(); } else if (st.tab === 'ros') roster(); else if (st.tab === 'ops') ops(); else log();
   }
   function bindRm() { [].forEach.call(app.querySelectorAll('[data-rm]'), function (b) { b.onclick = function () { S.setDay(b.dataset.rm, null); }; }); }
   function init() {
