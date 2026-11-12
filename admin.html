@@ -733,9 +733,10 @@ html[data-theme=light] .opb.on{color:#fff}
     d.staff.forEach(function (s) { var v = m[s.id]; if (v === '1') c.p++; else if (v === '0') c.a++; else if (v === 'u') c.u++; else c.n++; });
     return c;
   }
-  function opsImport(d, rows) {
+  function opsImport(d, rows, strict) {
     var hr = -1, ci = 0, cp = -1, i, j;
     for (i = 0; i < Math.min(rows.length, 15) && hr < 0; i++) for (j = 0; j < (rows[i] || []).length; j++) if (/^фио$/i.test(cleanS(rows[i][j]))) { hr = i; ci = j; }
+    if (hr < 0 && strict) return { add: 0, upd: 0 };
     if (hr >= 0) for (j = 0; j < rows[hr].length; j++) if (/должност/i.test(cleanS(rows[hr][j]))) cp = j;
     var have = {}, add = 0, upd = 0; d.staff.forEach(function (s) { have[K.normFio(s.fio)] = s; });
     for (i = hr + 1; i < rows.length; i++) {
@@ -751,8 +752,9 @@ html[data-theme=light] .opb.on{color:#fff}
     inp.onchange = function () {
       var f = inp.files[0]; if (!f) return;
       K.readSheets(f).then(function (sh) {
-        var d = opsLoad(), sheet = sh[0]; if (!sheet) { UI.toast('Файл пустой'); return; }
-        var r = opsImport(d, sheet.rows); if (!r.add && !r.upd) { UI.toast('Не нашёл ФИО сотрудников. Нужна колонка «ФИО» (и «Должность»).'); return; }
+        var d = opsLoad(), r = { add: 0, upd: 0 }; if (!sh.length) { UI.toast('Файл пустой'); return; }
+        sh.forEach(function (x) { var q = opsImport(d, x.rows || [], sh.length > 1); r.add += q.add; r.upd += q.upd; });
+        if (!r.add && !r.upd) { UI.toast('Не нашёл ФИО сотрудников. Нужна колонка «ФИО» (и «Должность»).'); return; }
         opsSave(d); UI.toast('Добавлено сотрудников: ' + r.add + (r.upd ? ', обновлено должностей: ' + r.upd : '')); ops();
       }).catch(function (e) { UI.toast('Не удалось прочитать файл: ' + (e && e.message || e)); });
     };
