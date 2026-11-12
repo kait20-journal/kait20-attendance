@@ -440,3 +440,7 @@ html[data-theme=light] body::before,html[data-theme=light] body::after{opacity:.
   .toast{bottom:calc(150px + env(safe-area-inset-bottom))}
   .gcard{padding:16px;min-height:96px}
 }
+
+/* perf: без анимации и blur на фоне, без backdrop-filter на карточках */
+body::before,body::after{animation:none;filter:none}
+.card,.kpi,.list,.mwrap,.gcard,.misscard .cl{backdrop-filter:none;-webkit-backdrop-filter:none}
