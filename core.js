@@ -192,7 +192,8 @@
         applyLoad(r); setState('ok'); startPoll(); notify(); return r;
       });
     },
-    tokens: function () { return post({ act: 'tokens' }).then(function (r) { return r.tokens || []; }); }
+    tokens: function () { return post({ act: 'tokens' }).then(function (r) { return r.tokens || []; }); },
+    call: function (b) { return post(b); }
   };
   window.addEventListener && window.addEventListener('beforeunload', function (e) { if (net.q.length) { e.preventDefault(); e.returnValue = ''; } });
 
