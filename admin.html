@@ -848,7 +848,7 @@ html[data-theme=light] .opb.on{color:#fff}
     $('#opXl').onclick = function () { opsExport(d, o.date); };
     $('#opCopy').onclick = function () {
       var m = (d.mt[o.date] || { m: {} }).m, a = d.staff.filter(function (s) { return m[s.id] === '0'; }), u = d.staff.filter(function (s) { return m[s.id] === 'u'; }), n = d.staff.filter(function (s) { return !m[s.id]; });
-      var t = 'Оперативка ' + opsDateRu(o.date) + '\nПрисутствуют: ' + c0() + ' из ' + d.staff.length + (a.length ? '\n\nОтсутствуют:\n' + a.map(function (s) { return '— ' + s.fio; }).join('\n') : '') + (u.length ? '\n\nУважительная причина:\n' + u.map(function (s) { return '— ' + s.fio; }).join('\n') : '') + (n.length ? '\n\nНе отмечены:\n' + n.map(function (s) { return '— ' + s.fio; }).join('\n') : '');
+      var t = 'Оперативка ' + opsDateRu(o.date) + '\nПрисутствуют: ' + c0() + ' из ' + d.staff.length + (a.length ? '\n\nОтсутствуют:\n' + a.map(function (s) { return '— ' + s.fio; }).join('\n') : '') + (u.length ? '\n\nУважительная причина:\n' + u.map(function (s) { return '— ' + s.fio; }).join('\n') : '');
       function c0() { return opsCnt(d, o.date).p; }
       UI.copyBox('Кого нет на оперативке', t, 'Текст выделен: нажмите «Скопировать» или Ctrl+C.');
     };
