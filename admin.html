@@ -803,29 +803,43 @@ html[data-theme=light] .opb.on{color:#fff}
       app.innerHTML = h + '<div class="card sec"><h3>Загрузите список сотрудников</h3><div class="mut sm">Excel-файл с колонками «ФИО» и «Должность» (телефоны не нужны, они не сохраняются). Список остаётся на этом компьютере. Позже его можно дополнить новым файлом: повторы не задвоятся.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="opImp">📥 Загрузить список из Excel</button><button class="btn ghost" id="opAdd">+ Добавить сотрудника вручную</button></div>' + opsFormHtml(o) + '</div>';
       $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { o.add = true; ops(); }; opsFormBind(o); return;
     }
-    var c = opsCnt(d, o.date), hist = Object.keys(d.mt).filter(function (x) { return opsCnt(d, x).p + opsCnt(d, x).a + opsCnt(d, x).u > 0; }).sort().reverse();
+    var c = opsCnt(d, o.date), cl = !!(d.mt[o.date] && d.mt[o.date].closed), hist = Object.keys(d.mt).filter(function (x) { return d.mt[x].closed || opsCnt(d, x).p + opsCnt(d, x).a + opsCnt(d, x).u > 0; }).sort().reverse();
     h += '<div class="card sec"><div class="filters" style="margin:0 0 12px"><label>Дата совещания<input type="date" id="opDate" value="' + o.date + '"></label><label style="flex:1;min-width:200px">Название<input id="opTitle" value="' + esc((d.mt[o.date] || {}).title || 'Оперативное совещание') + '" style="width:100%"></label>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="opAllP">✓ Все присутствуют</button><button class="btn ghost" id="opClr">Сбросить отметки</button></div></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="opAllP"' + (cl ? ' disabled' : '') + '>✓ Все присутствуют</button><button class="btn ghost" id="opClr"' + (cl ? ' disabled' : '') + '>Сбросить отметки</button></div></div>' +
+      '<div class="optool" style="align-items:center">' + (cl ? '<span class="pill">🔒 Совещание закрыто</span><button class="btn ghost sm" id="opReopen">🔓 Открыть снова</button>' : '<span class="pill">Совещание идёт</span><button class="btn ghost sm" id="opClose">✔ Закрыть совещание</button>') + '<button class="btn sm" id="opNew">＋ Новое совещание</button></div>' +
       '<div id="opCnt"></div>' +
       '<div class="filters" style="margin:12px 0 8px"><label style="flex:1;min-width:200px">Поиск<input id="opQ" placeholder="Фамилия или должность" value="' + esc(o.q) + '" style="width:100%"></label>' +
       '<div class="chips" id="opF">' + [['all', 'Все'], ['n', 'Не отмечены'], ['a', 'Отсутствуют'], ['p', 'Присутствуют']].map(function (x) { return '<button class="chip' + (o.f === x[0] ? ' on' : '') + '" data-f="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div></div>' +
       '<div class="optool"><button class="btn ghost sm" id="opAdd">＋ Добавить сотрудника</button><button class="btn ghost sm' + (o.edit ? ' on' : '') + '" id="opEdit">' + (o.edit ? '✔ Готово' : '✕ Удалить сотрудников') + '</button></div>' + opsFormHtml(o) +
       '<div id="opList"></div></div>' +
       '<div class="card sec"><h3>Действия</h3><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" id="opXl">⬇ Выгрузить в Excel</button><button class="btn ghost" id="opCopy">📋 Скопировать, кого нет</button><button class="btn ghost" id="opImp">📥 Добавить из Excel</button></div></div>';
-    if (hist.length) h += '<div class="card sec"><h3>Прошлые совещания</h3><table class="tb"><thead><tr><th>Дата</th><th>Название</th><th>Присутствовали</th><th></th></tr></thead><tbody>' + hist.map(function (x) { var k = opsCnt(d, x); return '<tr><td>' + opsDateRu(x) + '</td><td>' + esc(d.mt[x].title || '') + '</td><td>' + k.p + ' из ' + k.all + (k.a ? ' · нет: ' + k.a : '') + (k.u ? ' · уваж.: ' + k.u : '') + '</td><td><button class="btn ghost sm" data-open="' + x + '">Открыть</button></td></tr>'; }).join('') + '</tbody></table></div>';
+    if (hist.length) h += '<div class="card sec"><h3>Прошлые совещания</h3><table class="tb"><thead><tr><th>Дата</th><th>Название</th><th>Присутствовали</th><th></th></tr></thead><tbody>' + hist.map(function (x) { var k = opsCnt(d, x); return '<tr><td>' + opsDateRu(x) + '</td><td>' + esc(d.mt[x].title || '') + (d.mt[x].closed ? ' 🔒' : '') + '</td><td>' + k.p + ' из ' + k.all + (k.a ? ' · нет: ' + k.a : '') + (k.u ? ' · уваж.: ' + k.u : '') + '</td><td><button class="btn ghost sm" data-open="' + x + '">Открыть</button></td></tr>'; }).join('') + '</tbody></table></div>';
     app.innerHTML = h;
     function paint() {
       var cc = opsCnt(d, o.date), done = cc.p + cc.a + cc.u;
       $('#opCnt').innerHTML = '<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:baseline"><span style="font-size:28px;font-weight:800">' + cc.p + '<span class="mut" style="font-size:16px;font-weight:600"> из ' + cc.all + ' присутствуют</span></span><span class="pill red">нет: ' + cc.a + '</span><span class="pill amb">уваж.: ' + cc.u + '</span><span class="pill">не отмечено: ' + cc.n + '</span></div><div class="opbar"><i style="width:' + (cc.all ? Math.round(done * 100 / cc.all) : 0) + '%"></i></div>';
       $('#opList').innerHTML = opsList(d, o);
       [].forEach.call(app.querySelectorAll('.opb[data-c]'), function (b) { b.onclick = function () {
-        var mt = opsMeet(d, o.date), id = b.dataset.id, v = b.dataset.c; if (mt.m[id] === v) delete mt.m[id]; else mt.m[id] = v; opsSave(d);
+        var mt = opsMeet(d, o.date), id = b.dataset.id, v = b.dataset.c; if (mt.closed) { UI.toast('Совещание закрыто. Нажмите «Открыть снова», чтобы править'); return; } if (mt.m[id] === v) delete mt.m[id]; else mt.m[id] = v; opsSave(d);
         if (o.f !== 'all') paint(); else { paint(); } };
       });
       [].forEach.call(app.querySelectorAll('[data-del]'), function (b) { b.onclick = function () { var s = d.staff.filter(function (x) { return x.id === b.dataset.del; })[0]; UI.ask('Удалить «' + (s ? s.fio : '') + '» из списка? Прошлые отметки этого человека тоже исчезнут.', 'Удалить').then(function (ok) { if (!ok) return; d.staff = d.staff.filter(function (x) { return x.id !== b.dataset.del; }); Object.keys(d.mt).forEach(function (k) { delete d.mt[k].m[b.dataset.del]; }); opsSave(d); ops(); }); }; });
     }
     paint();
     $('#opDate').onchange = function () { if (this.value) { o.date = this.value; ops(); } };
+    function nextDate() {
+      var ds = Object.keys(d.mt).sort(), t = K.today(), last = ds.length ? ds[ds.length - 1] : '', x;
+      if (!d.mt[t]) return t;
+      x = new Date((last > t ? last : t) + 'T12:00:00'); x.setDate(x.getDate() + 7);
+      return x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2);
+    }
+    if ($('#opClose')) $('#opClose').onclick = function () { opsMeet(d, o.date).closed = true; opsSave(d); ops(); UI.toast('Совещание закрыто и сохранено в архиве'); };
+    if ($('#opReopen')) $('#opReopen').onclick = function () { delete opsMeet(d, o.date).closed; opsSave(d); ops(); };
+    $('#opNew').onclick = function () {
+      var nd = nextDate(), title = (d.mt[o.date] || {}).title || 'Оперативное совещание', cur = d.mt[o.date];
+      if (cur && !cur.closed && opsCnt(d, o.date).p + opsCnt(d, o.date).a + opsCnt(d, o.date).u > 0) cur.closed = true;
+      d.mt[nd] = { title: title, m: {} }; opsSave(d); o.date = nd; ops(); UI.toast('Создано новое совещание на ' + opsDateRu(nd) + '. Прошлое сохранено в архиве.');
+    };
     $('#opTitle').onchange = function () { opsMeet(d, o.date).title = cleanS(this.value) || 'Оперативное совещание'; opsSave(d); };
     $('#opQ').oninput = function () { o.q = this.value; paint(); };
     [].forEach.call(app.querySelectorAll('#opF .chip'), function (b) { b.onclick = function () { o.f = b.dataset.f; ops(); }; });
