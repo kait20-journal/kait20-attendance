@@ -17,7 +17,9 @@
 .opb{border:1px solid var(--line);background:rgba(var(--w),.08);color:inherit;border-radius:10px;padding:8px 12px;font-size:14px;font-weight:600;min-width:62px;cursor:pointer}
 .opb.g.on{background:var(--t-ok);border-color:var(--t-ok);color:#0b1f12}.opb.r.on{background:var(--t-bad);border-color:var(--t-bad);color:#2a0b07}.opb.y.on{background:var(--t-warn);border-color:var(--t-warn);color:#2a1a00}
 html[data-theme=light] .opb.on{color:#fff}
-.opb.x{min-width:0;padding:8px 10px}
+.opb.x{min-width:0;padding:8px 10px;border-color:var(--t-bad)}
+.optool{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}.optool .on{background:var(--t-bad);color:#2a0b07}
+.opform{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin:0 0 12px;padding:12px;border:1px dashed var(--line);border-radius:12px}.opform label{flex:1;min-width:200px}.opform input{width:100%}
 .opbar{height:8px;border-radius:99px;background:rgba(var(--w),.14);margin-top:10px;overflow:hidden}.opbar i{display:block;height:100%;background:var(--t-ok);border-radius:99px;transition:width .2s}
 @media(max-width:640px){.opr{flex-wrap:wrap}.opbs{width:100%;padding-left:36px}.opb{flex:1;padding:11px 8px}}
 </style>
@@ -794,12 +796,12 @@ html[data-theme=light] .opb.on{color:#fff}
     ]), 'Оперативка_' + date + '.xlsx', XLSX_T);
   }
   function ops() {
-    var d = opsLoad(), o = st.ops = st.ops || { date: K.today(), q: '', f: 'all', edit: false }, h;
+    var d = opsLoad(), o = st.ops = st.ops || { date: K.today(), q: '', f: 'all', edit: false, add: false }, h;
     if (!o.date) o.date = K.today();
     h = '<div class="hero"><h1>Оперативка</h1><p>Отмечайте, кто пришёл на совещание. Список сотрудников хранится только в этом браузере и в интернет не уходит.</p></div>';
     if (!d.staff.length) {
-      app.innerHTML = h + '<div class="card sec"><h3>Загрузите список сотрудников</h3><div class="mut sm">Excel-файл с колонками «ФИО» и «Должность» (телефоны не нужны, они не сохраняются). Список остаётся на этом компьютере. Позже его можно дополнить новым файлом: повторы не задвоятся.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="opImp">📥 Загрузить список из Excel</button><button class="btn ghost" id="opAdd">+ Добавить сотрудника вручную</button></div></div>';
-      $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { opsAdd(); }; return;
+      app.innerHTML = h + '<div class="card sec"><h3>Загрузите список сотрудников</h3><div class="mut sm">Excel-файл с колонками «ФИО» и «Должность» (телефоны не нужны, они не сохраняются). Список остаётся на этом компьютере. Позже его можно дополнить новым файлом: повторы не задвоятся.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="opImp">📥 Загрузить список из Excel</button><button class="btn ghost" id="opAdd">+ Добавить сотрудника вручную</button></div>' + opsFormHtml(o) + '</div>';
+      $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { o.add = true; ops(); }; opsFormBind(o); return;
     }
     var c = opsCnt(d, o.date), hist = Object.keys(d.mt).filter(function (x) { return opsCnt(d, x).p + opsCnt(d, x).a + opsCnt(d, x).u > 0; }).sort().reverse();
     h += '<div class="card sec"><div class="filters" style="margin:0 0 12px"><label>Дата совещания<input type="date" id="opDate" value="' + o.date + '"></label><label style="flex:1;min-width:200px">Название<input id="opTitle" value="' + esc((d.mt[o.date] || {}).title || 'Оперативное совещание') + '" style="width:100%"></label>' +
@@ -807,8 +809,9 @@ html[data-theme=light] .opb.on{color:#fff}
       '<div id="opCnt"></div>' +
       '<div class="filters" style="margin:12px 0 8px"><label style="flex:1;min-width:200px">Поиск<input id="opQ" placeholder="Фамилия или должность" value="' + esc(o.q) + '" style="width:100%"></label>' +
       '<div class="chips" id="opF">' + [['all', 'Все'], ['n', 'Не отмечены'], ['a', 'Отсутствуют'], ['p', 'Присутствуют']].map(function (x) { return '<button class="chip' + (o.f === x[0] ? ' on' : '') + '" data-f="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div></div>' +
+      '<div class="optool"><button class="btn ghost sm" id="opAdd">＋ Добавить сотрудника</button><button class="btn ghost sm' + (o.edit ? ' on' : '') + '" id="opEdit">' + (o.edit ? '✔ Готово' : '✕ Удалить сотрудников') + '</button></div>' + opsFormHtml(o) +
       '<div id="opList"></div></div>' +
-      '<div class="card sec"><h3>Действия</h3><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" id="opXl">⬇ Выгрузить в Excel</button><button class="btn ghost" id="opCopy">📋 Скопировать, кого нет</button><button class="btn ghost" id="opImp">📥 Добавить из Excel</button><button class="btn ghost" id="opAdd">+ Сотрудник</button><button class="btn ghost" id="opEdit">' + (o.edit ? 'Готово' : '✎ Изменить список') + '</button></div></div>';
+      '<div class="card sec"><h3>Действия</h3><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" id="opXl">⬇ Выгрузить в Excel</button><button class="btn ghost" id="opCopy">📋 Скопировать, кого нет</button><button class="btn ghost" id="opImp">📥 Добавить из Excel</button></div></div>';
     if (hist.length) h += '<div class="card sec"><h3>Прошлые совещания</h3><table class="tb"><thead><tr><th>Дата</th><th>Название</th><th>Присутствовали</th><th></th></tr></thead><tbody>' + hist.map(function (x) { var k = opsCnt(d, x); return '<tr><td>' + opsDateRu(x) + '</td><td>' + esc(d.mt[x].title || '') + '</td><td>' + k.p + ' из ' + k.all + (k.a ? ' · нет: ' + k.a : '') + (k.u ? ' · уваж.: ' + k.u : '') + '</td><td><button class="btn ghost sm" data-open="' + x + '">Открыть</button></td></tr>'; }).join('') + '</tbody></table></div>';
     app.innerHTML = h;
     function paint() {
@@ -835,15 +838,27 @@ html[data-theme=light] .opb.on{color:#fff}
       function c0() { return opsCnt(d, o.date).p; }
       UI.copyBox('Кого нет на оперативке', t, 'Текст выделен: нажмите «Скопировать» или Ctrl+C.');
     };
-    $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { opsAdd(); };
+    $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { o.add = !o.add; ops(); }; opsFormBind(o);
     $('#opEdit').onclick = function () { o.edit = !o.edit; ops(); };
     [].forEach.call(app.querySelectorAll('[data-open]'), function (b) { b.onclick = function () { o.date = b.dataset.open; window.scrollTo(0, 0); ops(); }; });
   }
-  function opsAdd() {
-    var fio = window.prompt('ФИО сотрудника'); if (!fio || !cleanS(fio)) return;
-    var pos = window.prompt('Должность (можно пропустить)') || '', d = opsLoad(), k = K.normFio(cleanS(fio));
-    if (d.staff.some(function (s) { return K.normFio(s.fio) === k; })) { UI.toast('Такой сотрудник уже есть в списке'); return; }
-    d.staff.push({ id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), fio: cleanS(fio), pos: cleanS(pos) }); opsSort(d); opsSave(d); ops();
+  function opsFormHtml(o) {
+    if (!o.add) return '';
+    return '<div class="opform"><label>ФИО<input id="opFio" placeholder="Фамилия Имя Отчество" autocomplete="off"></label><label>Должность<input id="opPos" placeholder="Преподаватель" autocomplete="off"></label><button class="btn" id="opOk">Добавить</button><button class="btn ghost" id="opNo">Отмена</button></div>';
+  }
+  function opsFormBind(o) {
+    var f = $('#opFio'); if (!f) return;
+    function go() {
+      var fio = cleanS(f.value), pos = cleanS($('#opPos').value), d = opsLoad(), k;
+      if (!fio) { UI.toast('Введите ФИО'); f.focus(); return; }
+      k = K.normFio(fio);
+      if (d.staff.some(function (s) { return K.normFio(s.fio) === k; })) { UI.toast('Такой сотрудник уже есть в списке'); return; }
+      d.staff.push({ id: 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), fio: fio, pos: pos }); opsSort(d); opsSave(d);
+      o.add = false; ops(); UI.toast('Сотрудник добавлен: ' + fio);
+    }
+    $('#opOk').onclick = go; $('#opNo').onclick = function () { o.add = false; ops(); };
+    [f, $('#opPos')].forEach(function (el) { el.onkeydown = function (e) { if (e.key === 'Enter') go(); }; });
+    f.focus();
   }
 
   function render() {
