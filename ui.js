@@ -152,5 +152,12 @@
     b.style.display = 'inline-grid'; b.style.placeItems = 'center'; draw();
   };
 
+  /* Esc закрывает окно, открытое поверх страницы */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    var o = document.querySelectorAll('body > .ov.on'); if (!o.length) return;
+    var x = o[o.length - 1], b = x.querySelector('[data-r="0"]') || x.querySelector('[data-r]'); if (b) b.click(); else x.click();
+  });
+
   G.UI = UI;
 })(window);
