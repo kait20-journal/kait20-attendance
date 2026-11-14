@@ -62,7 +62,7 @@
   }
   rebuild();
 
-  /* календарь: по умолчанию сб/вс — выходные (кроме суббот, где в данных есть занятия); заведующая может менять любой день */
+  /* календарь: по умолчанию сб/вс — выходные (кроме суббот, где в данных есть занятия); заведующий отделением может менять любой день */
   /* производственный календарь РФ (учебный 2025/26–2027/28; с учётом переносов): постановления Правительства РФ от 24.09.2025 № 1466 и от 17.09.2026 № 1187 */
   var HOLIDAYS = {
     '2026-02-23': 'День защитника Отечества', '2026-03-09': 'Международный женский день (перенос с 8 марта)', '2026-05-01': 'Праздник Весны и Труда', '2026-05-11': 'День Победы (перенос с 9 мая)', '2026-06-12': 'День России',
@@ -92,7 +92,7 @@
       var prev = dayInfo(d);
       if (!type) delete ov.days[d]; else ov.days[d] = { t: type, l: label || '' };
       if (REMOTE) post({ act: 'setDay', date: d, type: type || '', label: label || '' }).then(function (r) { if (r.v) net.v = r.v; });
-      ov.journal.unshift({ t: Date.now(), who: who || 'Заведующая', day: d, dayType: type, label: label || '', prevOff: prev.off });
+      ov.journal.unshift({ t: Date.now(), who: who || 'Заведующий отделением', day: d, dayType: type, label: label || '', prevOff: prev.off });
       save();
     },
     calendarOverrides: function () { return ov.days; },
@@ -199,7 +199,7 @@
   };
   window.addEventListener && window.addEventListener('beforeunload', function (e) { if (net.q.length) { e.preventDefault(); e.returnValue = ''; } });
 
-  /* ---------- состав групп (заведующая) ---------- */
+  /* ---------- состав групп (заведующий отделением) ---------- */
   function dayBefore(d) { var x = parse(d); x.setDate(x.getDate() - 1); return iso(x); }
   function adminOp(body, local) {
     if (REMOTE) return post(body).then(function (r) { if (r.err) throw new Error(r.err); return refresh().then(function () { return r; }); });
@@ -416,7 +416,7 @@
     });
   };
   Store.refresh = refresh;
-  /* синхронизация вкладок: куратор отмечает — панель заведующей обновляется */
+  /* синхронизация вкладок: куратор отмечает — панель заведующего отделением обновляется */
   if (G.addEventListener && !REMOTE) G.addEventListener('storage', function (e) {
     if (e.key === LS && e.newValue) { try { ov = JSON.parse(e.newValue); listeners.forEach(function (f) { f(); }); } catch (x) {} }
   });
