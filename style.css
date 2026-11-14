@@ -444,3 +444,13 @@ html[data-theme=light] body::before,html[data-theme=light] body::after{opacity:.
 /* perf: без анимации и blur на фоне, без backdrop-filter на карточках */
 body::before,body::after{animation:none;filter:none}
 .card,.kpi,.list,.mwrap,.gcard,.misscard .cl{backdrop-filter:none;-webkit-backdrop-filter:none}
+
+/* шапка админки: вкладки не вылезают за экран, при нехватке места прокручиваются */
+.app .top .wrap{flex-wrap:nowrap;min-width:0}
+.app .top .brand{flex:0 100 auto;min-width:0;overflow:hidden}
+.app .top .logo{flex:none}
+.app .tabs{flex:0 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none}
+.app .tabs::-webkit-scrollbar{display:none}
+.app .tabs button{flex:none}
+#themeBtn,#helpA{flex:none}
+@media(max-width:1800px){.app .tabs button{padding:10px 10px;font-size:14px}.app .top .brand small{display:none}}
