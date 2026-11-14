@@ -499,6 +499,7 @@ html[data-theme=light] .opb.on{color:#fff}
     h += '<div style="margin-top:12px"><button class="btn" id="radd">+ Добавить студента</button></div>';
     if (gone.length) h += '<h3 style="margin-top:20px">Выбывшие <small>' + gone.length + '</small></h3><table class="tb"><tbody>' + gone.map(function (s) { return '<tr><td>' + esc(s.fio) + '</td><td class="mut">до ' + fmtD(s.left) + '</td><td style="text-align:right"><button class="btn ghost sm" data-a="back" data-s="' + s.id + '">Вернуть</button></td></tr>'; }).join('') + '</tbody></table>';
     h += '</div>';
+    if (K.REMOTE) h += '<div class="card sec"><h3>Доступ преподавателей</h3><div class="mut sm">Каждый заходит по общей ссылке под своей корпоративной почтой. Первый вход — одноразовый пароль <b>kait20</b>, после него сайт просит придумать свой. Пароли хранятся в зашифрованном виде: вы их не видите, но можете сбросить (человек снова входит по <b>kait20</b> и задаёт новый).</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="acadd">＋ Добавить почты</button><button class="btn ghost" id="aclink">Общая ссылка для всех</button></div><div id="acl" style="margin-top:12px"><div class="mut sm">Загружаю…</div></div></div>';
     if (K.REMOTE) h += '<div class="card sec"><h3>Личные ссылки кураторов</h3><div class="mut sm">Каждый куратор открывает журнал только по своей ссылке — пароль не нужен. Ссылку видите только вы. Если ссылка попала не туда, нажмите «Сменить»: старая сразу перестанет работать.</div><div style="margin-top:10px"><button class="btn ghost sm" id="rlinks">Показать ссылки</button></div><div id="llist"></div></div>';
     app.innerHTML = h;
     $('#rg').onchange = function (e) { st.rg = e.target.value; roster(); };
@@ -540,6 +541,43 @@ html[data-theme=light] .opb.on{color:#fff}
   var XLSX_T = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   function dayBeforeD(d) { var x = K.parse(d); x.setDate(x.getDate() - 1); return K.iso(x); }
   function rollId(id, course) { var m = /^(\D+)(\d)(.*)$/.exec(id); return m && +m[2] === course ? m[1] + (course + 1) + m[3] : id; }
+
+  /* ---------- доступ преподавателей: почта + пароль ---------- */
+  function accPanel() {
+    var host = $('#acl'); if (!host) return;
+    var fmtT = function (t) { if (!t) return ''; var d = new Date(t); return K.pad(d.getDate()) + '.' + K.pad(d.getMonth() + 1) + ' ' + K.pad(d.getHours()) + ':' + K.pad(d.getMinutes()); };
+    function draw() {
+      K.Net.call({ act: 'accList' }).then(function (r) {
+        if (r.err) { host.innerHTML = '<div class="mut sm">' + (r.err === 'unknown act' ? 'Сервер ещё не обновлён.' : 'Не удалось загрузить: ' + esc(r.err)) + '</div>'; return; }
+        var a = (r.accs || []).slice().sort(function (x, y) { return x.name.localeCompare(y.name, 'ru'); });
+        host.innerHTML = !a.length ? '<div class="mut sm">Пока никого нет. Нажмите «Добавить почты».</div>' :
+          '<table class="tb"><thead><tr><th>Преподаватель</th><th>Почта</th><th>Статус</th><th></th></tr></thead><tbody>' + a.map(function (x) {
+            return '<tr><td><b>' + esc(x.name) + '</b></td><td>' + esc(x.email) + '</td><td>' + (x.locked ? '<span class="pill amb">заблокирован на 15 мин</span>' : x.tmp ? '<span class="pill amb">ещё не задал(а) свой пароль</span>' : '<span class="pill grn">пароль задан</span>' + (x.last ? ' <span class="xs mut">вход ' + fmtT(x.last) + '</span>' : '')) + '</td><td style="text-align:right;white-space:nowrap"><button class="btn ghost sm" data-ar="' + esc(x.email) + '">Сбросить пароль</button> <button class="btn ghost sm" data-ad="' + esc(x.email) + '">Удалить</button></td></tr>';
+          }).join('') + '</tbody></table><div class="xs mut" style="margin-top:8px">Всего: ' + a.length + ' · зарегистрировались: ' + a.filter(function (x) { return !x.tmp; }).length + '</div>';
+        [].forEach.call(host.querySelectorAll('[data-ar]'), function (b) { b.onclick = function () { UI.ask('Сбросить пароль для ' + b.dataset.ar + '? Человек будет разлогинен и войдёт снова с одноразовым паролем kait20.', 'Сбросить').then(function (ok) { if (ok) K.Net.call({ act: 'accReset', email: b.dataset.ar }).then(function (z) { UI.toast(z.ok ? 'Пароль сброшен. Одноразовый пароль: kait20' : 'Ошибка: ' + z.err); draw(); }); }); }; });
+        [].forEach.call(host.querySelectorAll('[data-ad]'), function (b) { b.onclick = function () { UI.ask('Удалить доступ ' + b.dataset.ad + '? Войти по этой почте будет нельзя.', 'Удалить').then(function (ok) { if (ok) K.Net.call({ act: 'accDel', email: b.dataset.ad }).then(function (z) { UI.toast(z.ok ? 'Доступ удалён' : 'Ошибка: ' + z.err); draw(); }); }); }; });
+      }).catch(function () { host.innerHTML = '<div class="mut sm">Нет связи с сервером.</div>'; });
+    }
+    $('#aclink').onclick = function () { UI.copyBox('Общая ссылка на журнал', new URL('index.html', location.href).href, 'Одна ссылка для всех преподавателей. Вход — по корпоративной почте.'); };
+    $('#acadd').onclick = function () {
+      var ov = mkModal('<h3>Добавить преподавателей</h3><div class="mut sm">По одному на строку: ФИО и почта через точку с запятой. ФИО должно совпадать с ФИО куратора в списках групп — по нему сайт даёт доступ к группам.</div><textarea id="acta" rows="9" style="width:100%;margin-top:10px;border:1px solid var(--line);border-radius:11px;padding:10px;font:inherit;color:inherit;background:rgba(var(--w),.08)" placeholder="Иванова Мария Петровна; ivanova@college.ru"></textarea><div id="acerr" class="sm" style="color:#e5484d;margin-top:6px"></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn ghost" id="acno" style="flex:1">Отмена</button><button class="btn" id="acok" style="flex:1">Добавить</button></div>');
+      ov.querySelector('#acno').onclick = function () { ov.remove(); };
+      ov.querySelector('#acok').onclick = function () {
+        var rows = [], bad = 0; ov.querySelector('#acta').value.split(/\n+/).forEach(function (ln) {
+          ln = ln.trim(); if (!ln) return; var p = ln.split(/[;\t]|,(?=[^,]*@)/).map(function (z) { return z.trim(); }).filter(Boolean), em = p.filter(function (z) { return z.indexOf('@') > 0; })[0], nm = p.filter(function (z) { return z.indexOf('@') < 0; })[0];
+          if (em && nm) rows.push({ name: nm, email: em }); else bad++;
+        });
+        if (!rows.length) { ov.querySelector('#acerr').textContent = 'Не нашёл ни одной строки вида «ФИО; почта».'; return; }
+        var known = {}; S.curators().forEach(function (c) { known[c.name] = 1; }); var unk = rows.filter(function (x) { return !known[x.name]; }).map(function (x) { return x.name; });
+        K.Net.call({ act: 'accAdd', rows: rows }).then(function (z) {
+          if (!z.ok) { ov.querySelector('#acerr').textContent = 'Ошибка: ' + z.err; return; } ov.remove();
+          UI.toast('Добавлено: ' + z.added + (z.skipped + bad ? ', пропущено: ' + (z.skipped + bad) + ' (уже есть или ошибка в строке)' : '') + (unk.length ? '. Нет в кураторах: ' + unk.join(', ') : '')); draw();
+        });
+      };
+    };
+    draw();
+  }
+
   function bindTools() {
     var a = $('#rimp'), b = $('#rtpl'), c = $('#rroll'), l = $('#rlinks');
     var ex = $('#rexp');
@@ -573,6 +611,7 @@ html[data-theme=light] .opb.on{color:#fff}
     };
     if (c) c.onclick = rollFlow;
     if (l) l.onclick = linksPanel;
+    accPanel();
   }
   function importPreview(groups) {
     var t = K.today(), info = groups.map(function (g) {
