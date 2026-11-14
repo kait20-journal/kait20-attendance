@@ -470,3 +470,7 @@ html[data-theme=light]::before{background:radial-gradient(1100px 600px at 85% -1
 html[data-theme=light] .rail,html[data-theme=light] .app .top .wrap{background:rgba(255,255,255,.82)}
 .opr{contain:layout paint}
 body::before,body::after{transform:translateZ(0)}
+
+/* шапка: название не обрезается, а сокращается до «КАИТ-20» */
+.app .top .brand{flex:none;overflow:visible}
+@media(max-width:1700px){.app .top .brand .bt2{display:none}}
