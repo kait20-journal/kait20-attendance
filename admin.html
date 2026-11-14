@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>КАИТ-20 · Посещаемость — панель заведующего отделения</title>
 <script>(function(){var t="";try{t=localStorage.getItem("kait.theme")||""}catch(e){}if(t!=="light"&&t!=="dark")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.setAttribute("data-theme",t)})()</script>
-<link rel="stylesheet" href="style.css?v=20261114e">
+<link rel="stylesheet" href="style.css?v=20261114f">
 <style id="opsCss">
 .opr{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line)}
 .opr.p{background:rgba(24,160,80,.10)}.opr.a{background:rgba(220,60,40,.10)}.opr.u{background:rgba(220,160,40,.12)}
@@ -80,9 +80,9 @@ html[data-theme=light] .opb.on{color:#fff}
 <div class="drawer" id="drawer"></div>
 
 <script src="config.js"></script>
-<script src="core.js?v=20261114e"></script>
-<script src="ui.js?v=20261114e"></script>
-<script src="anim.js?v=20261114e"></script>
+<script src="core.js?v=20261114f"></script>
+<script src="ui.js?v=20261114f"></script>
+<script src="anim.js?v=20261114f"></script>
 <script>
 (function () {
   var K = KAIT, S = K.Store, UI = window.UI, $ = UI.$, esc = K.esc, PIN = '2026';
@@ -241,7 +241,7 @@ html[data-theme=light] .opb.on{color:#fff}
       '<div class="hmlegend"><span>меньше пропусков</span><i style="background:rgb(120,215,170)"></i><i style="background:rgb(245,205,120)"></i><i style="background:rgb(250,150,105)"></i><i style="background:rgb(240,95,90)"></i><span>больше</span><i style="background:#f1f3f8;margin-left:12px"></i><span>нет отметок</span></div></div>';
 
     /* рейтинг + динамика */
-    P.rank = '<div class="card sec rank"><h3>Рейтинг групп <small>пропуски в % от посещаемых занятий</small></h3>' + rankHtml(gs, dates) + '</div>';
+    P.rank = '<div class="card sec rank"><h3>Рейтинг групп <small>полоса — пропуски, справа — итоговая посещаемость</small></h3>' + rankHtml(gs, dates) + '</div>';
     P.dyn = '<div class="card sec"><h3>Пропуски по дням <small>число студентов</small></h3>' + dynHtml(gs, dates) + '</div>';
 
     /* зона риска */
@@ -302,7 +302,7 @@ html[data-theme=light] .opb.on{color:#fff}
     rows.sort(function (a, b) { return b.ue - a.ue; });
     var max = Math.max.apply(null, rows.map(function (r) { return r.ue + r.ex; }).concat([1])), shown = st.allRank ? rows : rows.slice(0, 10);
     return shown.map(function (r) {
-      return '<div class="rw" data-g="' + esc(r.g.id) + '" title="' + esc(r.g.curator || '') + ' · посещаемость ' + pct(r.d.pct) + '"><b>' + esc(r.g.id) + '</b><div class="tr"><i style="width:' + r.ue / max * 100 + '%;background:#e5483b"></i><i style="width:' + r.ex / max * 100 + '%;background:#7aa2f7"></i></div><span>' + (r.ue + r.ex).toFixed(0) + '%</span></div>';
+      return '<div class="rw" data-g="' + esc(r.g.id) + '" title="' + esc(r.g.curator || '') + ' · посещаемость ' + pct(r.d.pct) + '"><b>' + esc(r.g.id) + '</b><div class="tr"><i style="width:' + r.ue / max * 100 + '%;background:#e5483b"></i><i style="width:' + r.ex / max * 100 + '%;background:#7aa2f7"></i></div><span class="at"><b style="color:var(--' + (r.d.pct === null ? 't-blue' : r.d.pct >= 85 ? 'c-ok' : r.d.pct >= 70 ? 't-warn' : 'c-bad') + ')">' + pct(r.d.pct, 0) + '</b><small>пропуски ' + (r.ue + r.ex).toFixed(0) + '%</small></span></div>';
     }).join('') + '<div class="xs mut" style="margin-top:8px"><span style="color:#e5483b">■</span> неуважительные &nbsp;<span style="color:#7aa2f7">■</span> уважительные' + (rows.length > 10 ? ' &nbsp;<button class="btn ghost sm noprint" id="rkall" style="margin-left:8px">' + (st.allRank ? 'Топ-10' : 'Все группы') + '</button>' : '') + '</div>';
   }
   function dynHtml(gs, dates) {
@@ -759,6 +759,8 @@ html[data-theme=light] .opb.on{color:#fff}
         Object.keys(x.mt[dt].m || {}).forEach(function (id) { var nid = i ? (idmap[id] || id) : id; if (!m.m[nid] || i) m.m[nid] = x.mt[dt].m[id]; });
       });
     });
+    var del = {}; [a.del, b.del].forEach(function (x) { Object.keys(x || {}).forEach(function (k) { del[k] = 1; }); });
+    Object.keys(del).forEach(function (k) { delete out.mt[k]; }); out.del = del;
     out.duty = dutyMerge(a.duty, b.duty);
     return out;
   }
@@ -798,7 +800,7 @@ html[data-theme=light] .opb.on{color:#fff}
   function cleanS(s) { return String(s == null ? '' : s).replace(/[ \s]+/g, ' ').trim(); }
   function opsSort(d) { d.staff.sort(function (a, b) { return a.fio.localeCompare(b.fio, 'ru'); }); }
   function opsDateRu(s) { var p = s.split('-'); return p[2] + '.' + p[1] + '.' + p[0]; }
-  function opsMeet(d, date) { return d.mt[date] || (d.mt[date] = { title: 'Оперативное совещание', m: {} }); }
+  function opsMeet(d, date) { if (d.del) delete d.del[date]; return d.mt[date] || (d.mt[date] = { title: 'Оперативное совещание', m: {} }); }
   function opsCnt(d, date) {
     var m = (d.mt[date] || { m: {} }).m, c = { p: 0, a: 0, u: 0, n: 0, all: d.staff.length };
     d.staff.forEach(function (s) { var v = m[s.id]; if (v === '1') c.p++; else if (v === '0') c.a++; else if (v === 'u') c.u++; else c.n++; });
@@ -884,7 +886,7 @@ html[data-theme=light] .opb.on{color:#fff}
       '<div class="optool"><button class="btn ghost sm" id="opAdd">＋ Добавить сотрудника</button><button class="btn ghost sm' + (o.edit ? ' on' : '') + '" id="opEdit">' + (o.edit ? '✔ Готово' : '✕ Удалить сотрудников') + '</button></div>' + opsFormHtml(o) +
       '<div id="opList"></div></div>' +
       '<div class="card sec"><h3>Действия</h3><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" id="opXl">⬇ Выгрузить в Excel</button><button class="btn ghost" id="opCopy">📋 Скопировать, кого нет</button><button class="btn ghost" id="opImp">📥 Добавить из Excel</button></div></div>';
-    if (hist.length) h += '<div class="card sec"><h3>Прошлые совещания</h3><table class="tb"><thead><tr><th>Дата</th><th>Название</th><th>Присутствовали</th><th></th></tr></thead><tbody>' + hist.map(function (x) { var k = opsCnt(d, x); return '<tr><td>' + opsDateRu(x) + '</td><td>' + esc(d.mt[x].title || '') + (d.mt[x].closed ? ' 🔒' : '') + '</td><td>' + k.p + ' из ' + k.all + (k.a ? ' · нет: ' + k.a : '') + (k.u ? ' · уваж.: ' + k.u : '') + '</td><td><button class="btn ghost sm" data-open="' + x + '">Открыть</button></td></tr>'; }).join('') + '</tbody></table></div>';
+    if (hist.length) h += '<div class="card sec"><h3>Прошлые совещания</h3><table class="tb"><thead><tr><th>Дата</th><th>Название</th><th>Присутствовали</th><th></th></tr></thead><tbody>' + hist.map(function (x) { var k = opsCnt(d, x); return '<tr><td>' + opsDateRu(x) + '</td><td>' + esc(d.mt[x].title || '') + (d.mt[x].closed ? ' 🔒' : '') + '</td><td>' + k.p + ' из ' + k.all + (k.a ? ' · нет: ' + k.a : '') + (k.u ? ' · уваж.: ' + k.u : '') + '</td><td><button class="btn ghost sm" data-open="' + x + '">Открыть</button> <button class="btn ghost sm" data-mdel="' + x + '" style="color:var(--t-bad)">Удалить</button></td></tr>'; }).join('') + '</tbody></table></div>';
     app.innerHTML = h; opsSyncUi();
     function paint() {
       var cc = opsCnt(d, o.date), done = cc.p + cc.a + cc.u;
@@ -926,6 +928,14 @@ html[data-theme=light] .opb.on{color:#fff}
     $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { o.add = !o.add; ops(); }; opsFormBind(o);
     $('#opEdit').onclick = function () { o.edit = !o.edit; ops(); };
     [].forEach.call(app.querySelectorAll('[data-open]'), function (b) { b.onclick = function () { o.date = b.dataset.open; window.scrollTo(0, 0); ops(); }; });
+    [].forEach.call(app.querySelectorAll('[data-mdel]'), function (b) { b.onclick = function () {
+      var dt = b.dataset.mdel;
+      UI.ask('Удалить совещание ' + opsDateRu(dt) + '? Отметки по нему пропадут, вернуть их нельзя.', 'Удалить').then(function (ok) {
+        if (!ok) return;
+        var dd = opsLoad(); delete dd.mt[dt]; dd.del = dd.del || {}; dd.del[dt] = 1; opsSave(dd);
+        if (o.date === dt) o.date = K.today(); ops(); UI.toast('Совещание удалено');
+      });
+    }; });
   }
   /* ===== Дежурства (график из Word; хранится в общем блоке «Оперативки» и синхронизируется с сервером) ===== */
   var DUTY_WD = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'];
