@@ -481,3 +481,19 @@ body::before,body::after{transform:translateZ(0)}
 /* рейтинг групп: справа итоговая посещаемость */
 .rank .rw{grid-template-columns:78px 1fr 92px}
 .rank .at{text-align:right;line-height:1.1}.rank .at b{font-size:15px}.rank .at small{display:block;font-size:11px;opacity:.65;font-weight:500}
+
+/* админка на телефоне: шапка в две строки, широкие таблицы прокручиваются внутри карточки */
+@media(max-width:760px){
+.app .top .wrap{flex-wrap:wrap;row-gap:8px}
+.app .top .brand{flex:1 1 auto;width:auto;order:1}
+.app #themeBtn{order:2;margin-left:0}
+.app #helpA{order:3;margin-left:0}
+.app .top .sp{display:none}
+.app .tabs{order:4;flex:1 1 100%;width:100%}
+.app main .calc{min-width:0;overflow:hidden}
+.app main table.tb,.app main table.hm{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.app main{min-width:0}
+html,body{overflow-x:hidden}
+}
+
+@media(min-width:761px) and (max-width:1000px){.app main table.tb{display:block;max-width:100%;overflow-x:auto}}
