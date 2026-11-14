@@ -1022,10 +1022,10 @@ html[data-theme=light] .opb.on{color:#fff}
     paint();
     $('#opDate').onchange = function () { if (this.value) { o.date = this.value; ops(); } };
     function nextDate() {
-      var ds = Object.keys(d.mt).sort(), t = K.today(), last = ds.length ? ds[ds.length - 1] : '', x;
-      if (!d.mt[t]) return t;
-      x = new Date((last > t ? last : t) + 'T12:00:00'); x.setDate(x.getDate() + 7);
-      return x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2);
+      var ds = Object.keys(d.mt).sort(), t = K.today(), last = ds.length ? ds[ds.length - 1] : '', x = new Date((last >= t ? last : t) + 'T12:00:00'), n = 0;
+      if (last >= t) x.setDate(x.getDate() + 1);
+      while ((x.getDay() !== 3 || d.mt[dutyIso(x)]) && n++ < 60) x.setDate(x.getDate() + 1);
+      return dutyIso(x);
     }
     if ($('#opClose')) $('#opClose').onclick = function () { opsMeet(d, o.date).closed = true; opsSave(d); ops(); UI.toast('Совещание закрыто и сохранено в архиве'); };
     if ($('#opReopen')) $('#opReopen').onclick = function () { delete opsMeet(d, o.date).closed; opsSave(d); ops(); };
