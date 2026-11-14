@@ -988,17 +988,26 @@ html[data-theme=light] .opb.on{color:#fff}
       app.innerHTML = h + '<div class="card sec"><h3>Загрузите список сотрудников</h3><div class="mut sm">Excel-файл с колонками «ФИО» и «Должность» (телефоны не нужны, они не сохраняются). Список хранится в закрытой таблице журнала и виден на любом устройстве. Позже его можно дополнить новым файлом: повторы не задвоятся.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="opImp">📥 Загрузить список из Excel</button><button class="btn ghost" id="opAdd">+ Добавить сотрудника вручную</button></div>' + opsFormHtml(o) + '</div>';
       opsSyncUi(); $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { o.add = true; ops(); }; opsFormBind(o); return;
     }
-    var c = opsCnt(d, o.date), cl = !!(d.mt[o.date] && d.mt[o.date].closed), hist = Object.keys(d.mt).filter(function (x) { return d.mt[x].closed || opsCnt(d, x).p + opsCnt(d, x).a + opsCnt(d, x).u > 0; }).sort().reverse();
-    h += '<div class="card sec"><div class="filters" style="margin:0 0 12px"><label>Дата совещания<input type="date" id="opDate" value="' + o.date + '"></label><label style="flex:1;min-width:200px">Название<input id="opTitle" value="' + esc((d.mt[o.date] || {}).title || 'Оперативное совещание') + '" style="width:100%"></label>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="opAllP"' + (cl ? ' disabled' : '') + '>✓ Все присутствуют</button><button class="btn ghost" id="opClr"' + (cl ? ' disabled' : '') + '>Сбросить отметки</button></div></div>' +
-      '<div class="optool" style="align-items:center">' + (cl ? '<span class="pill">🔒 Совещание закрыто</span><button class="btn ghost sm" id="opReopen">🔓 Открыть снова</button>' : '<span class="pill">Совещание идёт</span><button class="btn ghost sm" id="opClose">✔ Закрыть совещание</button>') + '<button class="btn sm" id="opNew">＋ Новое совещание</button></div>' +
-      '<div id="opCnt"></div>' +
-      '<div class="filters" style="margin:12px 0 8px"><label style="flex:1;min-width:200px">Поиск<input id="opQ" placeholder="Фамилия или должность" value="' + esc(o.q) + '" style="width:100%"></label>' +
-      '<div class="chips" id="opF">' + [['all', 'Все'], ['n', 'Не отмечены'], ['a', 'Отсутствуют'], ['p', 'Присутствуют']].map(function (x) { return '<button class="chip' + (o.f === x[0] ? ' on' : '') + '" data-f="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div></div>' +
-      '<div class="optool"><button class="btn ghost sm" id="opAdd">＋ Добавить сотрудника</button><button class="btn ghost sm' + (o.edit ? ' on' : '') + '" id="opEdit">' + (o.edit ? '✔ Готово' : '✕ Удалить сотрудников') + '</button></div>' + opsFormHtml(o) +
-      '<div id="opList"></div></div>' +
+    var c = opsCnt(d, o.date), cl = !!(d.mt[o.date] && d.mt[o.date].closed);
+    var MG = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'], WD = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+    function dShort(x) { var p = x.split('-'); return +p[2] + ' ' + MG[+p[1] - 1]; }
+    var dl = new Date(o.date + 'T12:00:00'), dLong = +o.date.slice(8) + ' ' + MG[+o.date.slice(5, 7) - 1] + ' ' + o.date.slice(0, 4) + ', ' + WD[dl.getDay()];
+    var ds = Object.keys(d.mt); if (ds.indexOf(o.date) < 0) ds.push(o.date); ds.sort().reverse();
+    var rib = '<div class="oprib"><button class="opm new" id="opNew">＋ Новое</button>' + ds.map(function (x) {
+      var k = opsCnt(d, x), mc = !!(d.mt[x] && d.mt[x].closed);
+      return '<button class="opm' + (x === o.date ? ' on' : '') + '" data-open="' + x + '" aria-pressed="' + (x === o.date) + '"><b>' + dShort(x) + '</b><span>' + k.p + ' из ' + k.all + '</span><span class="' + (mc ? 'mut' : x >= K.today() ? 'live' : 'mut') + '">' + (mc ? 'закрыто' : x >= K.today() ? '● идёт' : 'не закрыто') + '</span></button>';
+    }).join('') + '</div>';
+    h += rib +
+      '<div class="ophead"><div><h2>' + dLong + '</h2><label class="mut sm ophead-t">Название <input id="opTitle" value="' + esc((d.mt[o.date] || {}).title || 'Оперативное совещание') + '"></label></div>' +
+      '<div class="ophead-a"><span class="pill ' + (cl ? '' : 'gr') + '">' + (cl ? '🔒 Закрыто' : 'Идёт') + '</span>' + (cl ? '<button class="btn ghost sm" id="opReopen">🔓 Открыть снова</button>' : '<button class="btn ghost sm" id="opClose">✔ Закрыть совещание</button>') +
+      '<label class="mut sm opdt">Другая дата <input type="date" id="opDate" value="' + o.date + '"></label>' + (d.mt[o.date] ? '<button class="btn ghost sm" data-mdel="' + o.date + '" style="color:var(--t-bad)">Удалить</button>' : '') + '</div></div>' +
+      '<div class="opgrid"><div class="card sec"><div id="opCnt"></div></div>' +
+      '<div class="card sec"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="opAllP"' + (cl ? ' disabled' : '') + '>✓ Все присутствуют</button><button class="btn ghost" id="opClr"' + (cl ? ' disabled' : '') + '>Сбросить отметки</button></div>' +
+      '<div class="filters" style="margin:12px 0 0"><label style="flex:1;min-width:180px">Поиск<input id="opQ" placeholder="Фамилия или должность" value="' + esc(o.q) + '" style="width:100%"></label>' +
+      '<div class="chips" id="opF">' + [['all', 'Все'], ['n', 'Не отмечены'], ['a', 'Отсутствуют'], ['p', 'Присутствуют']].map(function (x) { return '<button class="chip' + (o.f === x[0] ? ' on' : '') + '" data-f="' + x[0] + '">' + x[1] + '</button>'; }).join('') + '</div></div></div></div>' +
+      '<div class="card sec"><div class="optool"><button class="btn ghost sm" id="opAdd">＋ Добавить сотрудника</button><button class="btn ghost sm' + (o.edit ? ' on' : '') + '" id="opEdit">' + (o.edit ? '✔ Готово' : '✕ Удалить сотрудников') + '</button></div>' + opsFormHtml(o) +
+      (cl ? '<div class="mut sm" style="margin:6px 0">Совещание закрыто: отметки только для просмотра. Нажмите «Открыть снова», чтобы изменить.</div>' : '') + '<div id="opList"></div></div>' +
       '<div class="card sec"><h3>Действия</h3><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn" id="opXl">⬇ Выгрузить в Excel</button><button class="btn ghost" id="opCopy">📋 Скопировать, кого нет</button><button class="btn ghost" id="opImp">📥 Добавить из Excel</button></div></div>';
-    if (hist.length) h += '<div class="card sec"><h3>Прошлые совещания</h3><table class="tb"><thead><tr><th>Дата</th><th>Название</th><th>Присутствовали</th><th></th></tr></thead><tbody>' + hist.map(function (x) { var k = opsCnt(d, x); return '<tr><td>' + opsDateRu(x) + '</td><td>' + esc(d.mt[x].title || '') + (d.mt[x].closed ? ' 🔒' : '') + '</td><td>' + k.p + ' из ' + k.all + (k.a ? ' · нет: ' + k.a : '') + (k.u ? ' · уваж.: ' + k.u : '') + '</td><td><button class="btn ghost sm" data-open="' + x + '">Открыть</button> <button class="btn ghost sm" data-mdel="' + x + '" style="color:var(--t-bad)">Удалить</button></td></tr>'; }).join('') + '</tbody></table></div>';
     app.innerHTML = h; opsSyncUi();
     function paint() {
       var cc = opsCnt(d, o.date), done = cc.p + cc.a + cc.u;
@@ -1039,7 +1048,7 @@ html[data-theme=light] .opb.on{color:#fff}
     };
     $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { o.add = !o.add; ops(); }; opsFormBind(o);
     $('#opEdit').onclick = function () { o.edit = !o.edit; ops(); };
-    [].forEach.call(app.querySelectorAll('[data-open]'), function (b) { b.onclick = function () { o.date = b.dataset.open; window.scrollTo(0, 0); ops(); }; });
+    [].forEach.call(app.querySelectorAll('[data-open]'), function (b) { b.onclick = function () { o.date = b.dataset.open; ops(); }; });
     [].forEach.call(app.querySelectorAll('[data-mdel]'), function (b) { b.onclick = function () {
       var dt = b.dataset.mdel;
       UI.ask('Удалить совещание ' + opsDateRu(dt) + '? Отметки по нему пропадут, вернуть их нельзя.', 'Удалить').then(function (ok) {
