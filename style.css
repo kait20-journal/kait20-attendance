@@ -98,9 +98,12 @@ table.mx thead th.sum{white-space:nowrap;padding:0 6px}
 @media(min-width:700px){.ov{align-items:center}.sheet{border-radius:20px}}
 @keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
 .sheet h3{font-size:18px}.sheet .sub{color:var(--mut);font-size:13px;margin:2px 0 12px}
-.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .opt{border:0;border-radius:13px;padding:11px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12.5px;font-weight:600;line-height:1.15;text-align:center;border:2px solid transparent}
 .opt b{font-size:20px}.opt.sel{border-color:var(--ink)}
+.opt{overflow-wrap:break-word}
+@media(max-width:440px){.opt{font-size:11.5px;padding:10px 3px}}
+@media(max-width:379px){.opts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .until{margin-top:12px;padding:10px 12px;background:#f5f7fb;border-radius:12px;font-size:13.5px;display:none}
 .until.on{display:block}.until input{margin-left:6px;border:1px solid var(--line);border-radius:8px;padding:5px 8px}
 .sheet .acts{display:flex;gap:8px;margin-top:14px}.sheet .acts button{flex:1}
