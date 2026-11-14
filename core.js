@@ -272,12 +272,12 @@
   function unzipText(buf) {
     var u8 = new Uint8Array(buf), dv = new DataView(buf), e = -1, i;
     for (i = u8.length - 22; i >= 0; i--) if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; }
-    if (e < 0) return Promise.reject(new Error('Это не файл Excel (.xlsx)'));
+    if (e < 0) return Promise.reject(new Error('Это не файл Office (.xlsx или .docx)'));
     var cnt = dv.getUint16(e + 10, true), p = dv.getUint32(e + 16, true), jobs = [], files = {}, td = new TextDecoder('utf-8');
     for (var k = 0; k < cnt; k++) {
       var method = dv.getUint16(p + 10, true), cs = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lho = dv.getUint32(p + 42, true);
       var name = td.decode(u8.subarray(p + 46, p + 46 + nl)); p += 46 + nl + xl + cl;
-      if (!/^xl\/(workbook\.xml|_rels\/workbook\.xml\.rels|sharedStrings\.xml|worksheets\/[^\/]+\.xml)$/.test(name)) continue;
+      if (!/^(xl\/(workbook\.xml|_rels\/workbook\.xml\.rels|sharedStrings\.xml|worksheets\/[^\/]+\.xml)|word\/document\.xml)$/.test(name)) continue;
       var st = lho + 30 + dv.getUint16(lho + 26, true) + dv.getUint16(lho + 28, true), data = u8.subarray(st, st + cs);
       (function (nm, m, d) { jobs.push((m === 0 ? Promise.resolve(d) : inflateRaw(d)).then(function (b) { files[nm] = td.decode(b); })); })(name, method, data);
     }
@@ -314,6 +314,29 @@
     var lines = String(text).replace(/\r/g, '').split('\n').filter(function (l) { return l.trim(); });
     var d = (lines[0] || '').indexOf('\t') >= 0 ? '\t' : ((lines[0] || '').split(';').length > (lines[0] || '').split(',').length ? ';' : ',');
     return [{ name: name || 'Список', rows: lines.map(function (l) { return l.split(d).map(function (c) { return c.replace(/^"|"$/g, '').trim(); }); }) }];
+  }
+  function readDocx(file) {
+    return new Promise(function (res, rej) {
+      var fr = new FileReader(); fr.onerror = function () { rej(new Error('Не удалось прочитать файл')); };
+      fr.onload = function () {
+        unzipText(fr.result).then(function (f) {
+          var x = f['word/document.xml']; if (!x) throw new Error('Это не файл Word (.docx)');
+          var doc = new DOMParser().parseFromString(x, 'application/xml'), body = doc.getElementsByTagName('w:body')[0], out = [], head = [];
+          var txt = function (n) { return [].map.call(n.getElementsByTagName('w:t'), function (t) { return t.textContent; }).join('').replace(/\s+/g, ' ').trim(); };
+          [].forEach.call(body ? body.childNodes : [], function (n) {
+            if (n.nodeName === 'w:p') { var t = txt(n); if (t) head.push(t); }
+            else if (n.nodeName === 'w:tbl') {
+              var rows = [].map.call(n.childNodes, function (tr) { return tr; }).filter(function (tr) { return tr.nodeName === 'w:tr'; }).map(function (tr) {
+                return [].filter.call(tr.childNodes, function (tc) { return tc.nodeName === 'w:tc'; }).map(function (tc) { return [].filter.call(tc.childNodes, function (p) { return p.nodeName === 'w:p'; }).map(txt).filter(Boolean).join(' '); });
+              });
+              out.push({ head: head.join(' '), rows: rows }); head = [];
+            }
+          });
+          res(out);
+        }).catch(rej);
+      };
+      fr.readAsArrayBuffer(file);
+    });
   }
   function readSheets(file) {
     return new Promise(function (res, rej) {
@@ -512,7 +535,7 @@
     CODES: CODES, ORDER: ORDER, MONTHS: MONTHS, MONTHS_GEN: MONTHS_GEN, DOW: DOW,
     pad: pad, iso: iso, parse: parse, today: today, isWeekend: isWeekend, monthDates: monthDates, rangeDates: rangeDates,
     fmtShort: fmtShort, fmtLong: fmtLong, shortName: shortName, esc: esc,
-    Net: Net, REMOTE: REMOTE, Store: Store, readSheets: readSheets, parseRoster: parseRoster, normFio: normFio, studyDates: studyDates, studentCnt: studentCnt, groupCnt: groupCnt, derive: derive, addCnt: addCnt, emptyCnt: emptyCnt, longestStreak: longestStreak,
+    Net: Net, REMOTE: REMOTE, Store: Store, readSheets: readSheets, readDocx: readDocx, parseRoster: parseRoster, normFio: normFio, studyDates: studyDates, studentCnt: studentCnt, groupCnt: groupCnt, derive: derive, addCnt: addCnt, emptyCnt: emptyCnt, longestStreak: longestStreak,
     buildXlsx: buildXlsx, exportTabel: exportTabel
   };
 })(typeof window !== 'undefined' ? window : globalThis);
