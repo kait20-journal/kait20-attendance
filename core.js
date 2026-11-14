@@ -111,19 +111,21 @@
     set: function (gid, sid, date, code, who, silent) {
       if (dayInfo(date).off) return; var prev = Store.get(gid, sid, date); if (prev === code) return;
       ((ov.marks[gid] = ov.marks[gid] || {})[sid] = ov.marks[gid][sid] || {})[date] = code;
-      ov.journal.unshift({ t: Date.now(), who: who || ov.who || '—', gid: gid, sid: sid, date: date, code: code, prev: prev });
+      ov.journal.unshift({ t: Date.now(), who: who || ov.who || '—', gid: gid, sid: sid, date: date, code: code, prev: prev, b: curB || undefined });
       if (ov.journal.length > 500) ov.journal.length = 500;
       if (REMOTE) { net.q.push({ gid: gid, sid: sid, date: date, code: code }); schedule(500); }
       if (!silent) save();
     },
-    /* отмена последней правки (или пачки правок, сделанных за пару секунд): возвращает число отменённых отметок */
+    /* отмена одного шага: одной отметки либо одной пачки («Остальные присутствуют»); возвращает число отменённых отметок */
+    batch: function (fn) { curB = Date.now() + '.' + Math.random(); try { fn(); } finally { curB = null; } },
     undoLast: function () {
-      var j = ov.journal, i, n = 0, t0 = null;
+      var j = ov.journal, i, n = 0, b = null;
       for (i = 0; i < j.length; i++) {
         var e = j[i]; if (!e.gid || e.u || e.undone) continue;
-        if (t0 !== null && Math.abs(t0 - e.t) > 2500) break;
-        if (Store.get(e.gid, e.sid, e.date) !== e.code) { if (t0 === null) { e.undone = true; continue; } else break; }
-        if (t0 === null) t0 = e.t; e.undone = true; var wh = e.who; Store.set(e.gid, e.sid, e.date, e.prev, wh, true); if (j[0]) j[0].u = true; n++;
+        if (n && (!b || e.b !== b)) break;
+        if (Store.get(e.gid, e.sid, e.date) !== e.code) { if (!n) { e.undone = true; continue; } else break; }
+        b = e.b || null; e.undone = true; var wh = e.who; Store.set(e.gid, e.sid, e.date, e.prev, wh, true); if (j[0]) j[0].u = true; n++;
+        if (!b) break;
       }
       if (n) save(); return n;
     },
@@ -151,7 +153,7 @@
     var o = {}; Object.keys(net.auth || {}).forEach(function (k) { o[k] = net.auth[k]; }); Object.keys(body).forEach(function (k) { o[k] = body[k]; });
     return G.fetch(CFG.api, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(o) }).then(function (r) { return r.json(); });
   }
-  var tasksR = [], eventsR = [];
+  var tasksR = [], eventsR = [], curB = null;
   function applyLoad(res) {
     tasksR = res.tasks || []; eventsR = res.events || [];
     seed.groups = res.groups; seed.marks = res.marks; ov.days = res.days || {}; if (res.journal) ov.journal = res.journal;
