@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#2c2724">
 <meta name="robots" content="noindex,nofollow">
 <title>КАИТ-20 · Посещаемость — панель заведующего отделения</title>
-<script>(function(){var t="";try{t=localStorage.getItem("kait.theme")||""}catch(e){}if(t!=="light"&&t!=="dark")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.setAttribute("data-theme",t)})()</script>
+<script>(function(){var t="";try{t=localStorage.getItem("kait.theme")||""}catch(e){}if(t!=="light"&&t!=="dark")t="dark";document.documentElement.setAttribute("data-theme",t)})()</script>
 <link rel="stylesheet" href="style.css?v=20261114f">
 <style id="opsCss">
 .opr{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line)}
@@ -489,7 +489,7 @@ html[data-theme=light] .opb.on{color:#fff}
     var g = S.group(st.rg), t = K.today();
     var h = '<div class="hero"><h1>Состав групп</h1><p>Добавляйте новых студентов, отмечайте выбывших, переводите между группами и меняйте куратора. История отметок сохраняется.</p></div>' +
       '<div class="card sec"><h3>Списки и учебный год</h3><div class="mut sm">Загрузите список групп из Excel (лист = группа, либо колонки «Группа» и «ФИО», при желании «Куратор») — новые группы и студенты добавятся, уже имеющиеся не задвоятся. В начале года нажмите «Новый учебный год».</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="rimp">📥 Загрузить списки из Excel</button><button class="btn ghost" id="rtpl">Скачать шаблон Excel</button><button class="btn ghost" id="rexp">⬇ Выгрузить все группы в Excel</button><button class="btn ghost" id="rroll">🎓 Новый учебный год</button></div></div><div class="card sec">';
-    h += '<div class="filters" style="margin:0 0 12px"><label>Группа<select id="rg">' + gs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === st.rg ? ' selected' : '') + '>' + esc(x.name) + ' · ' + x.course + ' курс</option>'; }).join('') + '</select></label></div>';
+    h += '<div class="filters" style="margin:0 0 12px"><label>Группа<select id="rg">' + gs.map(function (x) { return '<option value="' + esc(x.id) + '"' + (x.id === st.rg ? ' selected' : '') + '>' + esc(x.name) + ' · ' + x.course + ' курс' + (x.curator ? ' · ' + esc(K.shortName(x.curator)) : '') + '</option>'; }).join('') + '</select></label><label>Найти по куратору<input id="rcs" type="search" placeholder="Фамилия куратора" autocomplete="off" style="min-width:200px"></label><span id="rcsn" class="mut sm"></span></div>';
     if (!g) { app.innerHTML = h + '<div class="empty">Групп нет.</div></div>'; bindTools(); return; }
     var act = g.all.filter(function (s) { return !s.left || s.left >= t; }), gone = g.all.filter(function (s) { return s.left && s.left < t; });
     h += '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><div><span class="mut sm">Куратор:</span> <b>' + (g.curator ? esc(g.curator) : '— не назначен —') + '</b></div><button class="btn ghost sm" id="rcur">Сменить куратора</button>' + (K.REMOTE && g.curator ? '<button class="btn ghost sm" id="rlink">Ссылка куратора</button>' : '') + '</div>';
@@ -502,6 +502,15 @@ html[data-theme=light] .opb.on{color:#fff}
     if (K.REMOTE) h += '<div class="card sec"><h3>Личные ссылки кураторов</h3><div class="mut sm">Каждый куратор открывает журнал только по своей ссылке — пароль не нужен. Ссылку видите только вы. Если ссылка попала не туда, нажмите «Сменить»: старая сразу перестанет работать.</div><div style="margin-top:10px"><button class="btn ghost sm" id="rlinks">Показать ссылки</button></div><div id="llist"></div></div>';
     app.innerHTML = h;
     $('#rg').onchange = function (e) { st.rg = e.target.value; roster(); };
+    $('#rcs').oninput = function () {
+      var q = this.value.trim().toLowerCase().replace(/ё/g, 'е'), sel = $('#rg'), n = 0, first = null;
+      [].forEach.call(sel.options, function (o) {
+        var x = S.group(o.value), c = ' ' + (x && x.curator || '').toLowerCase().replace(/ё/g, 'е'), ok = !q || c.indexOf(' ' + q) >= 0;
+        o.hidden = !ok; o.disabled = !ok; if (ok && q) { n++; if (!first) first = o; }
+      });
+      $('#rcsn').textContent = q ? (n ? 'Найдено групп: ' + n : 'Не найдено') : '';
+      if (first && sel.value !== first.value) { st.rg = first.value; roster(); var i = $('#rcs'); i.value = q; i.focus(); i.oninput(); }
+    };
     function done(p, msg) { return p.then(function () { UI.toast(msg); roster(); }).catch(function (e) { UI.toast('Ошибка: ' + e.message); }); }
     $('#radd').onclick = function () {
       UI.form('Новый студент в ' + g.name, [{ id: 'fio', label: 'ФИО', req: true, hint: 'Фамилия Имя Отчество полностью' }, { id: 'from', label: 'Дата зачисления в группу', type: 'date', value: t, req: true, hint: 'Отметки до этой даты не требуются' }], 'Добавить').then(function (v) { if (v) done(S.addStudent(g.id, v.fio, v.from), 'Студент добавлен'); });
