@@ -460,3 +460,13 @@ body::before,body::after{animation:none;filter:none}
 .dtfs .dtl{grid-area:l;width:auto}.dtfs .dtn{grid-area:n;font-size:15px}.dtfs .dta{grid-area:a}
 .dtfs .dtr.sb{grid-template-columns:minmax(0,1fr);grid-template-areas:"l" "n"}
 .dtfs .dtrep{grid-column:1/-1}
+
+/* perf: фон не fixed-градиентом на body (перерисовывался при каждом скролле), а отдельным слоем; без blur у боковой панели и шапки */
+body{background:none!important}
+html::before{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;transform:translateZ(0);background:radial-gradient(1100px 600px at 85% -10%,rgba(120,150,190,.45),transparent 60%),radial-gradient(900px 600px at 0% 100%,rgba(150,110,80,.45),transparent 60%),linear-gradient(135deg,#5a524c 0%,#2c2724 55%,#1d1a18 100%)}
+html[data-theme=light]::before{background:radial-gradient(1100px 600px at 85% -10%,rgba(120,160,255,.28),transparent 60%),radial-gradient(900px 600px at 0% 100%,rgba(255,190,140,.26),transparent 60%),linear-gradient(135deg,#f6f8fc 0%,#eef2f8 55%,#e7ecf5 100%)}
+.rail,.app .top .wrap,.demo{backdrop-filter:none;-webkit-backdrop-filter:none}
+.rail{background:rgba(52,46,42,.78)}.app .top .wrap{background:rgba(52,46,42,.62)}
+html[data-theme=light] .rail,html[data-theme=light] .app .top .wrap{background:rgba(255,255,255,.82)}
+.opr{contain:layout paint}
+body::before,body::after{transform:translateZ(0)}
