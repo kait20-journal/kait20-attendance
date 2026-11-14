@@ -272,11 +272,12 @@
       '<button data-m="help"><b>? Как пользоваться</b><span>Короткая инструкция</span></button>' +
       '<button data-m="theme"><b>' + (UI.theme() === 'light' ? '🌙 Тёмная тема' : '☀️ Светлая тема') + '</b><span>Сейчас: ' + (UI.theme() === 'light' ? 'светлая' : 'тёмная') + '</span></button>' +
       '<button data-m="inst"><b>📲 Значок на экран телефона</b><span>Журнал будет открываться как приложение</span></button>' +
+      (K.REMOTE ? '<button data-m="pw"><b>🔑 Сменить пароль</b><span>Вход по почте</span></button><button data-m="out"><b>🚪 Выйти</b><span>Нужно будет войти снова</span></button>' : '') +
       (K.REMOTE ? '' : '<button data-m="who"><b>👤 Сменить куратора</b><span>Только в демо-версии</span></button>') +
       '</div><button class="btn ghost" data-m="x" style="width:100%;margin-top:12px">Закрыть</button></div>';
     ov.addEventListener('click', function (e) {
       var b = e.target.closest('[data-m]'); if (!b && e.target !== ov) return; ov.remove(); if (!b) return;
-      if (b.dataset.m === 'help') helpModal(); else if (b.dataset.m === 'theme') $('#themeBtn').click(); else if (b.dataset.m === 'inst') installHelp(); else if (b.dataset.m === 'who') askName(true);
+      if (b.dataset.m === 'help') helpModal(); else if (b.dataset.m === 'theme') $('#themeBtn').click(); else if (b.dataset.m === 'inst') installHelp(); else if (b.dataset.m === 'who') askName(true); else if (b.dataset.m === 'pw') window.kaitChangePw(); else if (b.dataset.m === 'out') window.kaitLogout();
     });
     document.body.appendChild(ov);
   }
@@ -303,16 +304,71 @@
   function boot() { document.body.classList.add('ready'); hashRead(); render(); if (!K.REMOTE) askName(false); else { try { if (!localStorage.getItem('kait.help.seen')) setTimeout(helpModal, 700); } catch (e) {} } }
   if (!K.REMOTE) boot();
   else {
-    var tok = ''; try { tok = new URLSearchParams(location.search).get('k') || sessionStorage.getItem('kait20-k') || ''; } catch (e) {}
-    if (!tok) { app.innerHTML = '<div class="card" style="padding:22px;margin-top:20px"><h3>Нужна личная ссылка</h3><div class="mut" style="margin-top:6px">Откройте журнал по личной ссылке, которую вам выдал Заведующий отделением. Пароль не нужен.</div></div>'; }
-    else {
-      try { sessionStorage.setItem('kait20-k', tok); history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+    var KEY = 'kait20-k', EMK = 'kait20-em';
+    var lget = function (k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+    var tok = ''; try { tok = new URLSearchParams(location.search).get('k') || sessionStorage.getItem(KEY) || lget(KEY); } catch (e) {}
+    var inpS = 'width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 12px;margin-top:4px;font:inherit;color:inherit;background:rgba(var(--w),.08)';
+    var errText = function (e, r) { return e && e.message && e.message !== 'bad' && e.message !== 'locked' && e.message !== 'short' ? 'Нет связи с сервером. Обновите страницу.' : r && r.err === 'locked' ? 'Слишком много неверных попыток. Подождите ' + (r.wait || 15) + ' мин.' : r && r.err === 'short' ? 'Пароль должен быть не короче 8 символов.' : 'Неверная почта или пароль.'; };
+    var enter = function (t, remember) {
+      try { if (remember) { localStorage.setItem(KEY, t); sessionStorage.removeItem(KEY); } else { sessionStorage.setItem(KEY, t); localStorage.removeItem(KEY); } history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
       app.innerHTML = '<div class="mut" style="padding:30px;text-align:center">Загружаю журнал…</div>';
-      K.Net.login({ k: tok }).then(function () { $('#whoBtn').onclick = null; st.mine = false; boot(); }).catch(function (e) {
-        try { sessionStorage.removeItem('kait20-k'); } catch (x) {}
-        app.innerHTML = '<div class="card" style="padding:22px;margin-top:20px"><h3>Не удалось открыть журнал</h3><div class="mut" style="margin-top:6px">' + (e.message === 'auth' ? 'Ссылка недействительна. Попросите Заведующего отделением выдать новую.' : 'Нет связи с сервером. Обновите страницу.') + '</div></div>';
+      K.Net.login({ k: t }).then(function () { $('#whoBtn').onclick = null; st.mine = false; boot(); }).catch(function (e) {
+        try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (x) {}
+        if (e.message === 'auth') loginScreen('Сессия закончилась или пароль был сброшен. Войдите снова.');
+        else app.innerHTML = '<div class="card" style="padding:22px;margin-top:20px"><h3>Не удалось открыть журнал</h3><div class="mut" style="margin-top:6px">Нет связи с сервером. Обновите страницу.</div></div>';
       });
-    }
+    };
+    var loginScreen = function (msg) {
+      app.innerHTML = '<div class="card" style="padding:22px;margin:20px auto;max-width:420px"><h2 style="margin:0 0 4px">Вход в журнал</h2><div class="mut sm">Войдите по корпоративной почте.</div>' +
+        '<div id="lerr" class="sm" style="color:#e5484d;margin-top:10px;min-height:18px">' + esc(msg || '') + '</div>' +
+        '<label class="sm mut" style="display:block;margin-top:6px">Почта<input id="lem" type="email" autocomplete="username" value="' + esc(lget(EMK)) + '" style="' + inpS + '"></label>' +
+        '<label class="sm mut" style="display:block;margin-top:10px">Пароль<input id="lpw" type="password" autocomplete="current-password" style="' + inpS + '"></label>' +
+        '<label class="sm" style="display:flex;gap:8px;align-items:center;margin-top:12px"><input id="lrm" type="checkbox" checked> Запомнить на этом устройстве</label>' +
+        '<button class="btn" id="lgo" style="width:100%;margin-top:14px">Войти</button>' +
+        '<div class="xs mut" style="margin-top:12px;line-height:1.5">Первый вход: пароль <b>kait20</b>. После входа сайт попросит придумать свой пароль. Забыли пароль — обратитесь к Заведующему отделением, он сбросит его.</div></div>';
+      var go = function () {
+        var em = $('#lem').value.trim().toLowerCase(), pw = $('#lpw').value, rm = $('#lrm').checked, er = $('#lerr'); er.textContent = '';
+        if (!em || !pw) { er.textContent = 'Введите почту и пароль.'; return; }
+        $('#lgo').disabled = true; $('#lgo').textContent = 'Проверяю…';
+        K.Net.call({ act: 'cLogin', email: em, pass: pw }).then(function (r) {
+          if (!r.ok) { $('#lgo').disabled = false; $('#lgo').textContent = 'Войти'; er.textContent = errText(null, r); return; }
+          try { localStorage.setItem(EMK, em); } catch (e) {}
+          if (r.tmp) newPass(em, pw, rm); else enter(r.k, rm);
+        }).catch(function (e) { $('#lgo').disabled = false; $('#lgo').textContent = 'Войти'; er.textContent = errText(e); });
+      };
+      $('#lgo').onclick = go; $('#lpw').onkeydown = $('#lem').onkeydown = function (e) { if (e.key === 'Enter') go(); };
+      ($('#lem').value ? $('#lpw') : $('#lem')).focus();
+    };
+    /* первый вход (или сброс): обязательная смена одноразового пароля на свой */
+    var newPass = function (em, oldPw, rm) {
+      app.innerHTML = '<div class="card" style="padding:22px;margin:20px auto;max-width:420px"><h2 style="margin:0 0 4px">Придумайте свой пароль</h2><div class="mut sm">Одноразовый пароль больше не будет работать. Запомните новый — Заведующий отделением его не видит, но может сбросить.</div>' +
+        '<div id="lerr" class="sm" style="color:#e5484d;margin-top:10px;min-height:18px"></div>' +
+        '<label class="sm mut" style="display:block;margin-top:6px">Новый пароль (от 8 символов)<input id="np1" type="password" autocomplete="new-password" style="' + inpS + '"></label>' +
+        '<label class="sm mut" style="display:block;margin-top:10px">Повторите пароль<input id="np2" type="password" autocomplete="new-password" style="' + inpS + '"></label>' +
+        '<button class="btn" id="ngo" style="width:100%;margin-top:14px">Сохранить и войти</button></div>';
+      var go = function () {
+        var p1 = $('#np1').value, p2 = $('#np2').value, er = $('#lerr'); er.textContent = '';
+        if (p1.length < 8) { er.textContent = 'Пароль должен быть не короче 8 символов.'; return; }
+        if (p1 === oldPw || p1.toLowerCase() === 'kait20') { er.textContent = 'Придумайте другой пароль, не одноразовый.'; return; }
+        if (p1 !== p2) { er.textContent = 'Пароли не совпадают.'; return; }
+        $('#ngo').disabled = true;
+        K.Net.call({ act: 'cChange', email: em, pass: oldPw, npass: p1 }).then(function (r) {
+          if (!r.ok) { $('#ngo').disabled = false; er.textContent = errText(null, r); return; } enter(r.k, rm);
+        }).catch(function (e) { $('#ngo').disabled = false; er.textContent = errText(e); });
+      };
+      $('#ngo').onclick = go; $('#np2').onkeydown = function (e) { if (e.key === 'Enter') go(); }; $('#np1').focus();
+    };
+    window.kaitLogout = function () { try { sessionStorage.removeItem(KEY); localStorage.removeItem(KEY); } catch (e) {} location.replace(location.pathname); };
+    window.kaitChangePw = function () {
+      var em = lget(EMK); if (!em) { UI.toast('Войдите по почте, чтобы сменить пароль'); return; }
+      UI.form('Смена пароля', [{ id: 'o', label: 'Текущий пароль', type: 'password', req: true }, { id: 'n', label: 'Новый пароль (от 8 символов)', type: 'password', req: true }], 'Сменить').then(function (v) {
+        if (!v) return; if (v.n.length < 8) { UI.toast('Пароль короче 8 символов'); return; }
+        K.Net.call({ act: 'cChange', email: em, pass: v.o, npass: v.n }).then(function (r) {
+          if (!r.ok) { UI.toast(errText(null, r)); return; } try { if (lget(KEY)) localStorage.setItem(KEY, r.k); else sessionStorage.setItem(KEY, r.k); } catch (e) {} UI.toast('Пароль изменён'); location.reload();
+        }).catch(function () { UI.toast('Нет связи с сервером'); });
+      });
+    };
+    if (!tok) loginScreen(); else enter(tok, !!lget(KEY));
   }
 })();
 </script>
