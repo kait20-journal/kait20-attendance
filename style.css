@@ -454,3 +454,9 @@ body::before,body::after{animation:none;filter:none}
 .app .tabs button{flex:none}
 #themeBtn,#helpA{flex:none}
 @media(max-width:1800px){.app .tabs button{padding:10px 10px;font-size:14px}.app .top .brand small{display:none}}
+
+/* дежурства: в узких карточках этажей подпись сверху, имя под ней, кнопки справа */
+.dtfs .dtr{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"l a" "n a";align-items:center;gap:2px 8px}
+.dtfs .dtl{grid-area:l;width:auto}.dtfs .dtn{grid-area:n;font-size:15px}.dtfs .dta{grid-area:a}
+.dtfs .dtr.sb{grid-template-columns:minmax(0,1fr);grid-template-areas:"l" "n"}
+.dtfs .dtrep{grid-column:1/-1}
