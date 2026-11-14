@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex,nofollow">
 <title>КАИТ-20 · Посещаемость — панель заведующего отделения</title>
 <script>(function(){var t="";try{t=localStorage.getItem("kait.theme")||""}catch(e){}if(t!=="light"&&t!=="dark")t=window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";document.documentElement.setAttribute("data-theme",t)})()</script>
-<link rel="stylesheet" href="style.css?v=20261114b">
+<link rel="stylesheet" href="style.css?v=20261114c">
 <style id="opsCss">
 .opr{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line)}
 .opr.p{background:rgba(24,160,80,.10)}.opr.a{background:rgba(220,60,40,.10)}.opr.u{background:rgba(220,160,40,.12)}
@@ -80,9 +80,9 @@ html[data-theme=light] .opb.on{color:#fff}
 <div class="drawer" id="drawer"></div>
 
 <script src="config.js"></script>
-<script src="core.js?v=20261114b"></script>
-<script src="ui.js?v=20261114b"></script>
-<script src="anim.js?v=20261114b"></script>
+<script src="core.js?v=20261114c"></script>
+<script src="ui.js?v=20261114c"></script>
+<script src="anim.js?v=20261114c"></script>
 <script>
 (function () {
   var K = KAIT, S = K.Store, UI = window.UI, $ = UI.$, esc = K.esc, PIN = '2026';
@@ -102,7 +102,7 @@ html[data-theme=light] .opb.on{color:#fff}
   if (K.REMOTE) { try { sp = sessionStorage.getItem('kait20-admin-pin') || ''; } catch (e) {} $('#gate .xs').hidden = true; $('#pin').maxLength = 40; $('#pin').inputMode = 'text'; }
   else { try { ok = sessionStorage.getItem('kait20-admin') === '1'; } catch (e) {} }
   if (K.REMOTE && sp) { K.Net.login({ pin: sp }).then(enter).catch(function () { setTimeout(function () { $('#pin').focus(); }, 50); }); }
-  else if (ok) enter(); else setTimeout(function () { $('#pin').focus(); }, 50);
+  else if (ok) setTimeout(enter, 0); else setTimeout(function () { $('#pin').focus(); }, 50);
 
   /* ---------- состояние ---------- */
   var TM = K.today().slice(0, 7), TEND = K.iso(new Date(+TM.slice(0, 4), +TM.slice(5), 0));
@@ -871,7 +871,7 @@ html[data-theme=light] .opb.on{color:#fff}
     h = '<div class="hero"><h1>Оперативка</h1><p>Отмечайте, кто пришёл на совещание. Список сотрудников и архив совещаний сохраняются в закрытой таблице журнала, видны только администратору.</p><p class="mut sm" id="opSync"></p></div>';
     opsPull();
     if (!d.staff.length) {
-      app.innerHTML = h + '<div class="card sec"><h3>Загрузите список сотрудников</h3><div class="mut sm">Excel-файл с колонками «ФИО» и «Должность» (телефоны не нужны, они не сохраняются). Список остаётся на этом компьютере. Позже его можно дополнить новым файлом: повторы не задвоятся.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="opImp">📥 Загрузить список из Excel</button><button class="btn ghost" id="opAdd">+ Добавить сотрудника вручную</button></div>' + opsFormHtml(o) + '</div>';
+      app.innerHTML = h + '<div class="card sec"><h3>Загрузите список сотрудников</h3><div class="mut sm">Excel-файл с колонками «ФИО» и «Должность» (телефоны не нужны, они не сохраняются). Список хранится в закрытой таблице журнала и виден на любом устройстве. Позже его можно дополнить новым файлом: повторы не задвоятся.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="opImp">📥 Загрузить список из Excel</button><button class="btn ghost" id="opAdd">+ Добавить сотрудника вручную</button></div>' + opsFormHtml(o) + '</div>';
       opsSyncUi(); $('#opImp').onclick = opsPickFile; $('#opAdd').onclick = function () { o.add = true; ops(); }; opsFormBind(o); return;
     }
     var c = opsCnt(d, o.date), cl = !!(d.mt[o.date] && d.mt[o.date].closed), hist = Object.keys(d.mt).filter(function (x) { return d.mt[x].closed || opsCnt(d, x).p + opsCnt(d, x).a + opsCnt(d, x).u > 0; }).sort().reverse();
@@ -1054,7 +1054,7 @@ html[data-theme=light] .opb.on{color:#fff}
       var q = (o.q || '').toLowerCase().replace(/ё/g, 'е').trim(), el = $('#dtRes'); if (!el) return;
       if (!q) { el.innerHTML = ''; return; }
       var by = {};
-      all.forEach(function (sl) { sl.v.forEach(function (n, i) { if (!n || dutyVac(n) || String(n).toLowerCase().replace(/ё/g, 'е').indexOf(q) < 0) return; var k = dutyKey(n); (by[k] = by[k] || { n: n, it: [] }).it.push(['Пн', 'Вт', 'Ср', 'Чт', 'Пт'][i] + ': ' + dutyPlace(sl) + (sl.main ? '' : ' (замена)')); }); });
+      all.forEach(function (sl) { sl.v.forEach(function (n, i) { if (!n || dutyVac(n) || (' ' + String(n).toLowerCase().replace(/ё/g, 'е')).indexOf(' ' + q) < 0) return; var k = dutyKey(n); (by[k] = by[k] || { n: n, it: [] }).it.push(['Пн', 'Вт', 'Ср', 'Чт', 'Пт'][i] + ': ' + dutyPlace(sl) + (sl.main ? '' : ' (замена)')); }); });
       var ks = Object.keys(by);
       el.innerHTML = ks.length ? ks.map(function (k) { var x = by[k]; return '<div class="dtq"><b>' + esc(x.n) + '</b><div class="mut sm">' + x.it.map(esc).join('<br>') + '</div></div>'; }).join('') : '<div class="mut sm" style="margin-top:8px">В графике такой фамилии нет.</div>';
     }
