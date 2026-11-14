@@ -713,9 +713,69 @@ html[data-theme=light] .opb.on{color:#fff}
     }; });
   }
 
+
+  /* ---------- резервная копия в Excel: всё, что было на сайте за период ---------- */
+  function backupXlsx(n, endYm) {
+    var ep = endYm.split('-'), ey = +ep[0], em = +ep[1] - 1;
+    var sd = new Date(ey, em - n + 1, 1), ed = new Date(ey, em + 1, 0), today = K.today(), a = K.iso(sd), b = K.iso(ed); if (b > today) b = today;
+    var span = n === 1 ? K.MONTHS[em] + ' ' + ey : K.MONTHS[sd.getMonth()] + ' ' + sd.getFullYear() + ' — ' + K.MONTHS[em] + ' ' + ey;
+    var all = K.rangeDates(a, b, false), study = all.filter(function (d) { return !S.isOff(d); });
+    var inP = function (d) { return d && d >= a && d <= b; };
+    var groups = S.groups().slice().sort(function (x, y) { return x.course - y.course || x.id.localeCompare(y.id, 'ru'); });
+    var stuRows = [['Группа', 'Курс', 'Куратор', 'Студент', 'Присутствовал', 'Опоздания', 'Неуважительные', 'Уважительные', 'Не отмечено', 'Посещаемость, %']], grpRows = [['Группа', 'Курс', 'Куратор', 'Студентов', 'Присутствовал', 'Опоздания', 'Неуважительные', 'Уважительные', 'Не отмечено', 'Посещаемость, %']], tabs = [];
+    var pc = function (p, t) { return t ? Math.round(p * 1000 / t) / 10 : ''; };
+    groups.forEach(function (g) {
+      var mat = [['№', 'Студент'].concat(study.map(function (d) { return K.fmtShort(d); }))], G = { p: 0, l: 0, u: 0, e: 0, n: 0 }, cnt = 0;
+      g.all.forEach(function (st) {
+        var c = { p: 0, l: 0, u: 0, e: 0, n: 0 }, row = [], any = false;
+        study.forEach(function (d) {
+          var on = S.rosterOn(g, d).some(function (x) { return x.id === st.id; }); if (!on) { row.push(''); return; }
+          any = true; var v = S.get(g.id, st.id, d) || '', k = v ? (K.CODES[v] || {}).kind : '';
+          if (!v) c.n++; else if (v === '+') c.p++; else if (v === 'о') c.l++; else if (k === 'unexc') c.u++; else c.e++;
+          row.push(v);
+        });
+        if (!any) return; cnt++;
+        mat.push([cnt, st.fio].concat(row));
+        stuRows.push([g.id, g.course, g.curator || '', st.fio, c.p, c.l, c.u, c.e, c.n, pc(c.p + c.l, c.p + c.l + c.u + c.e)]);
+        Object.keys(c).forEach(function (k) { G[k] += c[k]; });
+      });
+      grpRows.push([g.id, g.course, g.curator || '', cnt, G.p, G.l, G.u, G.e, G.n, pc(G.p + G.l, G.p + G.l + G.u + G.e)]);
+      mat.push([]); mat.push(['', 'Обозначения: + присутствует, о опоздание, н неуважительная, у ушёл, б больничный, з заявление, п по приказу; пусто — не отмечено или студента нет в группе']);
+      tabs.push({ name: 'Т ' + g.id, rows: mat, widths: [5, 38].concat(study.map(function () { return 6; })), headerRows: 1 });
+    });
+    var dayRows = [['Дата', 'День', 'Статус', 'Пояснение']];
+    all.forEach(function (d) { var di = S.dayInfo(d), dw = K.DOW[K.parse(d).getDay()]; if (di.off && !di.custom && di.label === 'Выходной') return; if (di.off || di.label || di.mode) dayRows.push([K.fmtShort(d), dw, di.off ? 'выходной' : di.mode === 'elearn' ? 'электронное обучение' : di.mode === 'remote' ? 'дистанционное обучение' : 'учебный день', di.label || '']); });
+    var taskRows = [['Куратор', 'Задача', 'Описание', 'Срок', 'Создана', 'Выполнена']];
+    S.tasks().filter(function (t) { return inP(t.due) || inP(t.created) || inP(t.done); }).sort(function (x, y) { return (x.due || '').localeCompare(y.due || ''); }).forEach(function (t) { taskRows.push([t.cur || t.curator || '', t.title, t.desc || '', t.due ? K.fmtShort(t.due) : '', t.created ? K.fmtShort(t.created) : '', t.done ? K.fmtShort(String(t.done).slice(0, 10)) : 'нет']); });
+    var evRows = [['Дата', 'Мероприятие', 'Описание', 'Для кого']];
+    S.events().filter(function (e) { return inP(e.date); }).sort(function (x, y) { return x.date.localeCompare(y.date); }).forEach(function (e) { evRows.push([K.fmtShort(e.date), e.title, e.desc || '', eventTarget(e)]); });
+    var d0 = opsLoad(), meet = [['Дата', 'Тема', 'Сотрудник', 'Должность', 'Статус']], names = { '1': 'был', '0': 'отсутствовал', 'u': 'уважительная причина' };
+    Object.keys(d0.mt).sort().filter(inP).forEach(function (dt) { var m = d0.mt[dt]; d0.staff.forEach(function (s) { var v = m.m && m.m[s.id]; meet.push([K.fmtShort(dt), m.title || 'Оперативное совещание', s.fio, s.pos || '', names[v] || 'не отмечен']); }); });
+    var duty = [['Дата', 'День', 'Место', 'Дежурный', 'Замена']], du = d0.duty;
+    if (du && du.s) all.forEach(function (d) { var wd = dutyIdx(d); if (wd === null || S.isOff(d)) return; dutySlots(du.s).forEach(function (sl) { var nm = dutyName(du, d, sl, wd), rep = !!du.over[d + '|' + sl.k]; if (!nm || dutyVac(nm)) return; if (!sl.main && !rep) return; duty.push([K.fmtShort(d), K.DOW[K.parse(d).getDay()], dutyPlace(sl), nm, rep ? 'да' : '']); }); });
+    var jr = [['Когда', 'Кто', 'Что изменено']];
+    S.journal().filter(function (e) { var t = new Date(e.t), d = K.iso(t); return inP(d); }).forEach(function (e) {
+      var t = new Date(e.t), when = K.pad(t.getDate()) + '.' + K.pad(t.getMonth() + 1) + '.' + t.getFullYear() + ' ' + K.pad(t.getHours()) + ':' + K.pad(t.getMinutes()), what;
+      if (e.note) what = e.note; else if (e.day) what = 'День ' + K.fmtShort(e.day) + ': ' + (e.dayType || 'по умолчанию') + (e.label ? ' · ' + e.label : '');
+      else { var x = S.student(e.sid); what = (x ? x.s.fio + ' (' + x.g.id + ')' : e.sid) + ' · ' + K.fmtShort(e.date) + ': ' + (e.prev || 'пусто') + ' → ' + (e.code || 'пусто'); }
+      jr.push([when, e.who || '', what]);
+    });
+    var roster = [['Группа', 'Курс', 'Куратор', 'Студент', 'В группе с', 'Выбыл (последний день)']];
+    groups.forEach(function (g) { g.all.forEach(function (st) { roster.push([g.id, g.course, g.curator || '', st.fio, st.from ? K.fmtShort(st.from) : '', st.left ? K.fmtShort(st.left) : '']); }); });
+    var info = [['Резервная копия данных сайта «КАИТ-20 · Посещаемость»'], ['Период', span + ' (' + K.fmtShort(a) + ' — ' + K.fmtShort(b) + ')'], ['Создана', K.fmtLong(today) + ', ' + K.pad(new Date().getHours()) + ':' + K.pad(new Date().getMinutes())], ['Учебных дней в периоде', study.length], ['Групп', groups.length], ['Строк «Студент × итоги»', stuRows.length - 1], ['Задач', taskRows.length - 1], ['Мероприятий', evRows.length - 1], ['Записей оперативок', meet.length - 1], ['Записей о дежурствах', duty.length - 1], [],
+      ['Листы'], ['Итоги по группам', 'сводка посещаемости по каждой группе'], ['Итоги по студентам', 'пропуски и % посещаемости по каждому студенту'], ['Т <группа>', 'табель: все отметки по дням, отдельный лист на группу'], ['Дни', 'выходные, праздники, электронное/дистанционное обучение'], ['Задачи', 'задачи кураторам'], ['Мероприятия', 'календарь мероприятий'], ['Оперативки', 'кто присутствовал на совещаниях'], ['Дежурства', 'кто и где дежурил, замены'], ['Журнал изменений', 'кто и когда менял отметки'], ['Состав групп', 'студенты и даты зачисления/выбытия (на момент создания копии)'], [],
+      ['Посещаемость, % = (присутствовал + опоздания) / все отметки за период; «не отмечено» в расчёт не входит.']];
+    var sheets = [{ name: 'О копии', rows: info, widths: [34, 70] }, { name: 'Итоги по группам', rows: grpRows, widths: [10, 7, 28, 11, 14, 11, 15, 14, 12, 16], headerRows: 1 }, { name: 'Итоги по студентам', rows: stuRows, widths: [10, 7, 28, 38, 14, 11, 15, 14, 12, 16], headerRows: 1 }]
+      .concat(tabs, [{ name: 'Дни', rows: dayRows, widths: [12, 6, 24, 40], headerRows: 1 }, { name: 'Задачи', rows: taskRows, widths: [26, 44, 44, 12, 12, 12], headerRows: 1 }, { name: 'Мероприятия', rows: evRows, widths: [12, 40, 44, 44], headerRows: 1 }, { name: 'Оперативки', rows: meet, widths: [12, 30, 38, 30, 22], headerRows: 1 }, { name: 'Дежурства', rows: duty, widths: [12, 6, 40, 34, 9], headerRows: 1 }, { name: 'Журнал изменений', rows: jr, widths: [18, 28, 80], headerRows: 1 }, { name: 'Состав групп', rows: roster, widths: [10, 7, 28, 38, 14, 20], headerRows: 1 }]);
+    saveBlob(K.buildXlsx(sheets), 'Резервная_копия_' + (n === 1 ? ey + '-' + K.pad(em + 1) : n + 'мес_до_' + ey + '-' + K.pad(em + 1)) + '.xlsx', XLSX_T);
+  }
+
   /* ---------- журнал ---------- */
   function log() {
-    var j = S.journal().slice(0, 150), h = '<div class="hero"><h1>Журнал изменений</h1><p>Кто и когда менял отметки и календарь. Последние 150 записей.</p></div><div class="card sec">';
+    var j = S.journal().slice(0, 150), h = '<div class="hero"><h1>Журнал изменений</h1><p>Кто и когда менял отметки и календарь. Последние 150 записей.</p></div>' +
+      '<div class="card sec"><h3>Резервная копия в Excel</h3><div class="mut sm">Вся информация сайта за период одним файлом: посещаемость (табель на каждую группу и итоги), дни, задачи, мероприятия, оперативки, дежурства, журнал изменений и состав групп. Через годы по файлу можно восстановить, что было и когда.</div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:12px"><label class="sm mut">Период<select id="bkn" style="display:block;margin-top:4px"><option value="1">Один месяц</option><option value="3">3 месяца</option><option value="6">Полгода</option></select></label>' +
+      '<label class="sm mut"><span id="bkl">Месяц</span><input type="month" id="bkm" value="' + K.today().slice(0, 7) + '" style="display:block;margin-top:4px"></label><button class="btn" id="bkgo">⬇ Скачать копию</button></div><div class="xs mut" id="bkh" style="margin-top:8px"></div></div><div class="card sec">';
     if (!j.length) h += '<div class="empty">Пока изменений нет. Откройте страницу куратора и отметьте любую группу — запись появится здесь.</div>';
     else h += '<table class="tb"><thead><tr><th>Когда</th><th>Кто</th><th>Что изменено</th><th></th></tr></thead><tbody>' + j.map(function (e) {
       var t = new Date(e.t), when = K.pad(t.getDate()) + '.' + K.pad(t.getMonth() + 1) + ' ' + K.pad(t.getHours()) + ':' + K.pad(t.getMinutes()), what;
@@ -726,6 +786,9 @@ html[data-theme=light] .opb.on{color:#fff}
       return '<tr><td class="mut" style="white-space:nowrap">' + when + '</td><td>' + esc(e.who) + '</td><td>' + what + '</td><td style="text-align:right">' + (can ? '<button class="btn ghost sm" data-undo="' + e.t + '|' + e.sid + '|' + e.date + '">↩ Отменить</button>' : '') + '</td></tr>';
     }).join('') + '</tbody></table>';
     app.innerHTML = h + '</div>';
+    var bkU = function () { var n = +$('#bkn').value; $('#bkl').textContent = n === 1 ? 'Месяц' : 'Последний месяц периода'; var p = $('#bkm').value.split('-'); if (p.length < 2) return; var e = new Date(+p[0], +p[1] - 1, 1), st0 = new Date(+p[0], +p[1] - n, 1); $('#bkh').textContent = n === 1 ? 'Будет выгружен ' + K.MONTHS[e.getMonth()].toLowerCase() + ' ' + e.getFullYear() + '.' : 'Будет выгружено: ' + K.MONTHS[st0.getMonth()].toLowerCase() + ' ' + st0.getFullYear() + ' — ' + K.MONTHS[e.getMonth()].toLowerCase() + ' ' + e.getFullYear() + '.'; };
+    $('#bkn').onchange = bkU; $('#bkm').onchange = bkU; bkU();
+    $('#bkgo').onclick = function () { var v = $('#bkm').value; if (!v) { UI.toast('Выберите месяц'); return; } UI.toast('Собираю файл…'); setTimeout(function () { try { backupXlsx(+$('#bkn').value, v); } catch (e) { UI.toast('Не получилось: ' + e.message); } }, 50); };
     [].forEach.call(app.querySelectorAll('[data-undo]'), function (b) { b.onclick = function () {
       var q = b.dataset.undo.split('|'), e = S.journal().filter(function (z) { return String(z.t) === q[0] && z.sid === q[1] && z.date === q[2]; })[0], x = e && S.student(e.sid); if (!x) return;
       S.set(x.g.id, e.sid, e.date, e.prev || '', 'Заведующий отделением (отмена правки)'); UI.toast('Отметка возвращена'); log();
