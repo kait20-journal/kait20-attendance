@@ -149,7 +149,7 @@ html[data-theme=light] .opb.on{color:#fff}
     });
     svg += '</svg>';
     return '<div class="card sec"><h3>В колледже <small>по выбранным группам · значение меняется по дням</small><span style="flex:1"></span>' +
-      '<span class="noprint" style="display:inline-flex;gap:6px;align-items:center"><button class="btn ghost sm" id="dprev">‹</button><input type="date" id="dday" value="' + dd + '" style="border:1px solid var(--line);border-radius:10px;padding:6px 8px"><button class="btn ghost sm" id="dnext">›</button><button class="btn ghost sm" id="dtod">Сегодня</button></span></h3>' +
+      '<span class="noprint" style="display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center"><button class="btn ghost sm" id="dprev">‹</button><input type="date" id="dday" value="' + dd + '" style="border:1px solid var(--line);border-radius:10px;padding:6px 8px"><button class="btn ghost sm" id="dnext">›</button><button class="btn ghost sm" id="dtod">Сегодня</button></span></h3>' +
       (off ? '<div class="mut">' + K.fmtLong(dd) + ' — ' + esc(S.dayInfo(dd).label || 'выходной день') + '. Занятий нет.</div>' :
       '<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap"><div><div style="font-size:46px;font-weight:800;letter-spacing:-1px;line-height:1">' + c.here + '</div><div class="mut sm">из ' + c.total + ' студентов · ' + Math.round(c.here / M * 100) + '%</div><div class="mut xs" style="margin-top:2px">' + K.fmtLong(dd) + '</div></div>' +
       '<div style="flex:1;min-width:260px"><div style="display:flex;height:16px;border-radius:6px;overflow:hidden;background:#eef1f6">' + seg(c.here, '#22a35a', 'В колледже') + seg(c.absent, '#e5483b', 'Отсутствуют') + seg(c.skip, '#98a2b3', 'ИУП / практика') + '</div>' +
@@ -399,7 +399,7 @@ html[data-theme=light] .opb.on{color:#fff}
     var p = st.calYm.split('-'), y = +p[0], m = +p[1] - 1, first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, dates = K.monthDates(y, m, false);
     var h = '<div class="hero"><h1>Календарь учебных дней</h1><p>Отметьте выходные и праздники: в такие дни кураторы не смогут ставить отметки, а дни не попадут в статистику. Субботу можно сделать учебной. Государственные праздники и переносы по производственному календарю РФ проставлены автоматически, каникулы колледжа отметьте выбором диапазона дней.</p></div>' +
       '<div class="cols two"><div class="card sec"><div class="mrow"><button class="btn ghost sm" id="cp">‹</button><b style="min-width:140px;text-align:center">' + K.MONTHS[m] + ' ' + y + '</b><button class="btn ghost sm" id="cn">›</button></div>' +
-      '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px">' + ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(function (d) { return '<div class="xs mut" style="text-align:center">' + d + '</div>'; }).join('');
+      '<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:10px">' + ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(function (d) { return '<div class="xs mut" style="text-align:center">' + d + '</div>'; }).join('');
     for (var i = 0; i < lead; i++) h += '<div></div>';
     dates.forEach(function (d) {
       var di = S.dayInfo(d), isSel = d >= calSel.a && d <= calSel.b, ne = eventsOn(d).length;
