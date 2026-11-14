@@ -22,6 +22,20 @@ html[data-theme=light] .opb.on{color:#fff}
 .opform{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin:0 0 12px;padding:12px;border:1px dashed var(--line);border-radius:12px}.opform label{flex:1;min-width:200px}.opform input{width:100%}
 .opbar{height:8px;border-radius:99px;background:rgba(var(--w),.14);margin-top:10px;overflow:hidden}.opbar i{display:block;height:100%;background:var(--t-ok);border-radius:99px;transition:width .2s}
 @media(max-width:640px){.opr{flex-wrap:wrap}.opbs{width:100%;padding-left:36px}.opb{flex:1;padding:11px 8px}}
+.dtbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.dtday{font-size:18px;margin-left:6px}
+.dtg{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:14px}.dtg .wide{grid-column:1/-1}
+.dtc{border-left:4px solid var(--ac,#4c9bff)}.dtc h3{margin:0 0 6px}
+.dtr{display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--line);border-radius:6px}
+.dtl{width:96px;flex:none;color:var(--mut);font-size:12px}.dtn{flex:1;min-width:0;font-weight:700}.dtn s{font-weight:400;color:var(--mut);font-size:13px;margin-left:6px}
+.dtr.sb{opacity:.8}.dtr.sb .dtn{font-weight:500;font-size:14px}.dtv{color:var(--t-bad);font-weight:700}
+.dtr.vac{background:rgba(220,60,40,.10)}.dtr.vac .dtn{color:var(--t-bad)}.dtr.dn{background:rgba(24,160,80,.10)}.dtr.rp{background:rgba(220,160,40,.14)}
+.dta{display:flex;gap:6px;flex:none}.dtb{border:1px solid var(--line);background:rgba(var(--w),.08);color:inherit;border-radius:10px;padding:7px 11px;font-size:14px;font-weight:600;cursor:pointer;min-width:38px}
+.dtb.on{background:var(--t-ok);border-color:var(--t-ok);color:#0b1f12}.dtb.on2{background:var(--t-warn);border-color:var(--t-warn);color:#2a1c04}html[data-theme=light] .dtb.on{color:#fff}
+.dts{font-size:12px;font-weight:700;letter-spacing:.02em;margin:12px 0 2px;color:var(--mut)}
+.dtfl{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}.dtfs{border:1px solid var(--line);border-radius:12px;padding:4px 10px 8px}
+.dtrep{display:flex;gap:8px;flex-wrap:wrap;padding:8px 6px;border-bottom:1px solid var(--line)}.dtrep input{flex:1;min-width:180px}
+.dtq{padding:8px 2px;border-bottom:1px solid var(--line)}
+@media(max-width:640px){.dtg{grid-template-columns:1fr}.dtl{width:72px}.dtday{width:100%;margin:6px 0 0}}
 </style>
 </head>
 <body>
@@ -45,13 +59,14 @@ html[data-theme=light] .opb.on{color:#fff}
   <button data-t="ros" title="Состав групп" aria-label="Состав групп"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.5 3.3-5.5 6.5-5.5s5.9 2 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 010 6.8M18 14.8c2 .7 3.2 2.4 3.5 5.2"/></svg></button>
   <button data-t="log" title="Журнал" aria-label="Журнал"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11l3 3v13H5z"/><path d="M8 11h8M8 15h8"/></svg></button>
   <button data-t="ops" title="Оперативка" aria-label="Оперативка"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="17" rx="3"/><path d="M9 4v3h6V4M8.5 13l2 2 4-4"/></svg></button>
+  <button data-t="duty" title="Дежурства" aria-label="Дежурства"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></button>
 </nav>
 <div class="mainc">
 <div class="top"><div class="wrap">
   <div class="brand"><div class="logo">К20</div><div>КАИТ-20 · Посещаемость<small>Панель заведующего отделения</small></div></div>
   <div class="sp"></div>
   <div class="tabs" id="tabs" style="background:rgba(255,255,255,.12)">
-    <button data-t="dash" class="on" style="color:#fff">Дашборд</button><button data-t="an" style="color:#cfe0ff">Аналитика</button><button data-t="tk" style="color:#cfe0ff">Задачи</button><button data-t="cal" style="color:#cfe0ff">Календарь дней</button><button data-t="ros" style="color:#cfe0ff">Состав групп</button><button data-t="log" style="color:#cfe0ff">Журнал</button><button data-t="ops" style="color:#cfe0ff">Оперативка</button>
+    <button data-t="dash" class="on" style="color:#fff">Дашборд</button><button data-t="an" style="color:#cfe0ff">Аналитика</button><button data-t="tk" style="color:#cfe0ff">Задачи</button><button data-t="cal" style="color:#cfe0ff">Календарь дней</button><button data-t="ros" style="color:#cfe0ff">Состав групп</button><button data-t="log" style="color:#cfe0ff">Журнал</button><button data-t="ops" style="color:#cfe0ff">Оперативка</button><button data-t="duty" style="color:#cfe0ff">Дежурства</button>
   </div>
   <button class="btn ghost sm" id="themeBtn" title="Светлая / тёмная тема" aria-label="Светлая или тёмная тема" style="margin-left:8px"></button>
   <button class="btn ghost sm" id="helpA" title="Как пользоваться" style="margin-left:8px">? Помощь</button>
@@ -744,6 +759,7 @@ html[data-theme=light] .opb.on{color:#fff}
         Object.keys(x.mt[dt].m || {}).forEach(function (id) { var nid = i ? (idmap[id] || id) : id; if (!m.m[nid] || i) m.m[nid] = x.mt[dt].m[id]; });
       });
     });
+    out.duty = dutyMerge(a.duty, b.duty);
     return out;
   }
   function opsPush() {
@@ -766,14 +782,14 @@ html[data-theme=light] .opb.on{color:#fff}
       opsSrv.st = /unknown act/.test(e.message) ? 'old' : 'err';
     }).then(function () { opsSrv.busy = false; opsSyncUi(); if (opsSrv.again) { opsSrv.again = false; opsDoPush(); } });
   }
-  function opsRerender() { if (st.tab === 'ops') ops(); }
+  function opsRerender() { if (st.tab === 'ops') ops(); else if (st.tab === 'duty') duty(); }
   function opsPull() {
     if (!K.REMOTE || opsSrv.pulled) return; opsSrv.pulled = true; opsSrv.st = 'sync'; opsSyncUi();
     K.Net.call({ act: 'opsGet' }).then(function (r) {
       if (r.err) throw new Error(r.err);
       var loc = opsLoad(), dirty = opsLS('kait.ops.dirty') === '1', synced = opsLS('kait.ops.rev') !== null;
       opsSrv.rev = r.rev;
-      if (!r.data) { if (loc.staff.length) { opsSrv.rev = r.rev; opsDoPush(); } else { opsSrv.st = 'ok'; opsSyncUi(); } return; }
+      if (!r.data) { if (loc.staff.length || loc.duty) { opsSrv.rev = r.rev; opsDoPush(); } else { opsSrv.st = 'ok'; opsSyncUi(); } return; }
       var rem = JSON.parse(r.data);
       if (dirty || !synced) { var mg = opsMerge(rem, loc); opsLS(OPSK, JSON.stringify(mg)); opsDoPush(); opsRerender(); }
       else { opsLS(OPSK, r.data); opsLS('kait.ops.rev', String(r.rev)); opsSrv.st = 'ok'; opsRerender(); }
@@ -829,9 +845,10 @@ html[data-theme=light] .opb.on{color:#fff}
   function opsList(d, o) {
     var m = (d.mt[o.date] || { m: {} }).m, rows = opsRows(d, o.q, o.f, o.date);
     if (!rows.length) return '<div class="empty">' + (o.q || o.f !== 'all' ? 'Нет сотрудников по этому фильтру.' : 'Список пуст.') + '</div>';
+    var dm = dutyMap(d, o.date);
     return rows.map(function (s, i) {
-      var v = m[s.id] || '';
-      return '<div class="opr' + (v === '1' ? ' p' : v === '0' ? ' a' : v === 'u' ? ' u' : '') + '"><span class="opn">' + (d.staff.indexOf(s) + 1) + '</span><div class="opw"><b>' + esc(s.fio) + '</b><div class="mut xs">' + esc(s.pos || '') + '</div></div>' +
+      var v = m[s.id] || '', dj = dm[dutyKey(s.fio)];
+      return '<div class="opr' + (v === '1' ? ' p' : v === '0' ? ' a' : v === 'u' ? ' u' : '') + '"><span class="opn">' + (d.staff.indexOf(s) + 1) + '</span><div class="opw"><b>' + esc(s.fio) + '</b>' + (dj ? ' <span class="pill amb" title="' + esc(dj.join('; ')) + '">дежурит</span>' : '') + '<div class="mut xs">' + esc(s.pos || '') + '</div></div>' +
         '<div class="opbs">' + opsBtn(s, v, '1', '✓ Был', 'g') + opsBtn(s, v, '0', 'Нет', 'r') + opsBtn(s, v, 'u', 'Уваж.', 'y') + (o.edit ? '<button class="opb x" data-del="' + esc(s.id) + '" title="Удалить из списка">✕</button>' : '') + '</div></div>';
     }).join('');
   }
@@ -910,6 +927,155 @@ html[data-theme=light] .opb.on{color:#fff}
     $('#opEdit').onclick = function () { o.edit = !o.edit; ops(); };
     [].forEach.call(app.querySelectorAll('[data-open]'), function (b) { b.onclick = function () { o.date = b.dataset.open; window.scrollTo(0, 0); ops(); }; });
   }
+  /* ===== Дежурства (график из Word; хранится в общем блоке «Оперативки» и синхронизируется с сервером) ===== */
+  var DUTY_WD = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница'];
+  function dutyIso(x) { return x.getFullYear() + '-' + ('0' + (x.getMonth() + 1)).slice(-2) + '-' + ('0' + x.getDate()).slice(-2); }
+  function dutyIdx(date) { var g = new Date(date + 'T12:00:00').getDay(); return g >= 1 && g <= 5 ? g - 1 : null; }
+  function dutyShift(date, step) { var x = new Date(date + 'T12:00:00'), n = 0; do { x.setDate(x.getDate() + step); n++; } while ((x.getDay() === 0 || x.getDay() === 6) && n < 8); return dutyIso(x); }
+  function dutyWork(date) { return dutyIdx(date) === null ? dutyShift(date, 1) : date; }
+  function dutyVac(n) { return /^вакансия/i.test(String(n || '').trim()); }
+  function dutyKey(n) { var p = String(n || '').replace(/ё/gi, 'е').toLowerCase().replace(/\./g, ' ').replace(/\s+/g, ' ').trim().split(' '); return (p[0] || '') + '|' + p.slice(1, 3).map(function (x) { return x.charAt(0); }).join(''); }
+  function dutyPair(body) { var r = body.filter(function (x) { return x.length >= 5; }); return r.length >= 2 ? { m: r[0].slice(0, 5), r: r[1].slice(0, 5) } : null; }
+  function dutyParse(tbs) {
+    var s = { street: null, admin: null, canteen: null, floors: null };
+    tbs.forEach(function (t) {
+      var h = (t.head || '').toLowerCase().replace(/ё/g, 'е'), body = t.rows.filter(function (r) { return r.length; }).slice(1);
+      if (/улич/.test(h)) s.street = dutyPair(body);
+      else if (/администратор/.test(h)) s.admin = dutyPair(body);
+      else if (/столов|буфет/.test(h)) s.canteen = body.filter(function (r) { return r.length >= 6; }).map(function (r) { return { t: r[0], v: r.slice(1, 6) }; });
+      else if (/преподавател|этаж/.test(h)) { var cur = null, fl = []; body.forEach(function (r) { if (r.length === 1) { cur = { n: r[0], rows: [] }; fl.push(cur); } else if (cur && r.length >= 6) cur.rows.push({ l: r[0], v: r.slice(1, 6) }); }); s.floors = fl; }
+    });
+    if (!s.street && !s.admin && !(s.canteen && s.canteen.length) && !(s.floors && s.floors.length)) throw new Error('В файле не нашёл таблиц дежурств');
+    return s;
+  }
+  function dutySlots(s) {
+    var o = [];
+    if (s.street) { o.push({ k: 'st0', g: 'street', sec: '', l: 'Основной', main: true, v: s.street.m }); o.push({ k: 'st1', g: 'street', sec: '', l: 'Замена', main: false, v: s.street.r }); }
+    if (s.admin) { o.push({ k: 'ad0', g: 'admin', sec: '', l: 'Основной', main: true, v: s.admin.m }); o.push({ k: 'ad1', g: 'admin', sec: '', l: 'Замена', main: false, v: s.admin.r }); }
+    (s.canteen || []).forEach(function (r, i) { o.push({ k: 'ca' + i, g: 'canteen', sec: '', l: r.t, main: true, v: r.v }); });
+    (s.floors || []).forEach(function (f, i) { f.rows.forEach(function (r, j) { var m = /дежурн/i.test(r.l); o.push({ k: 'fl' + i + '_' + j, g: 'floor', sec: f.n, l: m ? r.l : 'Замена', main: m, v: r.v }); }); });
+    return o;
+  }
+  function dutyName(du, date, sl, wd) { var ov = du.over[date + '|' + sl.k]; return ov ? ov.n : (sl.v[wd] || ''); }
+  function dutySubOf(all, sl) { for (var i = 0; i < all.length; i++) if (all[i].g === sl.g && all[i].sec === sl.sec && !all[i].main) return all[i]; return null; }
+  function dutyPlace(sl) { return sl.g === 'street' ? 'Улица' : sl.g === 'admin' ? 'Дежурный администратор' : sl.g === 'canteen' ? 'Столовая ' + sl.l : sl.sec + ' · ' + sl.l; }
+  /* кто дежурит в день date: ключ фамилия+инициалы → места (для пометки в «Оперативке») */
+  function dutyMap(d, date) {
+    var m = {}, du = d.duty, wd = dutyIdx(date); if (!du || !du.s || wd === null) return m;
+    dutySlots(du.s).forEach(function (sl) { if (!sl.main) return; var n = dutyName(du, date, sl, wd); if (!n || dutyVac(n)) return; (m[dutyKey(n)] = m[dutyKey(n)] || []).push(dutyPlace(sl)); });
+    return m;
+  }
+  function dutyMerge(a, b) {
+    if (!a) return b; if (!b) return a;
+    var o = { s: b.s || a.s, over: {}, done: {} };
+    ['over', 'done'].forEach(function (k) { var x = a[k] || {}, y = b[k] || {}; Object.keys(x).forEach(function (i) { o[k][i] = x[i]; }); Object.keys(y).forEach(function (i) { o[k][i] = y[i]; }); });
+    return o;
+  }
+  function dutyPick() {
+    var i = document.createElement('input'); i.type = 'file'; i.accept = '.docx';
+    i.onchange = function () {
+      var f = i.files && i.files[0]; if (!f) return;
+      K.readDocx(f).then(function (tb) {
+        var s = dutyParse(tb), d = opsLoad(); d.duty = d.duty || { s: null, over: {}, done: {} }; d.duty.s = s; opsSave(d);
+        st.duty = st.duty || {}; st.duty.rep = null; duty(); UI.toast('График дежурств загружен');
+      }).catch(function (e) { UI.toast(e && e.message ? e.message : 'Не удалось прочитать файл'); });
+    };
+    i.click();
+  }
+  function dutyRows(du, all, list, date, wd, o) {
+    var out = '', last = null;
+    list.forEach(function (sl) {
+      if (sl.sec !== last) { if (sl.sec) out += '<div class="dts">' + esc(sl.sec) + '</div>'; last = sl.sec; }
+      var n = dutyName(du, date, sl, wd), key = date + '|' + sl.k, ov = du.over[key], vac = dutyVac(n), dn = !!du.done[key];
+      if (!sl.main) { out += '<div class="dtr sb"><div class="dtl">' + esc(sl.l) + '</div><div class="dtn">' + (vac ? '<span class="dtv">Вакансия</span>' : esc(n)) + '</div></div>'; return; }
+      out += '<div class="dtr' + (vac ? ' vac' : ov ? ' rp' : dn ? ' dn' : '') + '"><div class="dtl">' + esc(sl.l) + '</div><div class="dtn">' + (vac ? 'Вакансия' : esc(n)) + (ov ? ' <s>' + esc(ov.was) + '</s>' : '') + '</div><div class="dta">' +
+        (vac ? '' : '<button class="dtb' + (dn ? ' on' : '') + '" data-dn="' + sl.k + '" title="Отдежурил" aria-label="Отдежурил">✓</button>') +
+        '<button class="dtb' + (o.rep === sl.k ? ' on2' : '') + '" data-rp="' + sl.k + '" title="' + (vac ? 'Назначить' : 'Не вышел: поставить замену') + '">' + (vac ? 'Назначить' : '↻') + '</button></div></div>';
+      if (o.rep === sl.k) {
+        var sub = dutySubOf(all, sl), sn = sub ? dutyName(du, date, sub, wd) : '';
+        out += '<div class="dtrep"><input id="dtRepIn" list="dtStaff" placeholder="Кто заменяет" value="' + esc(sn && !dutyVac(sn) ? sn : '') + '"><button class="btn sm" id="dtRepOk">Поставить</button>' + (ov ? '<button class="btn ghost sm" id="dtRepRm">Вернуть основного</button>' : '') + '<button class="btn ghost sm" id="dtRepNo">Отмена</button></div>';
+      }
+    });
+    return out;
+  }
+  function dutyText(du, date, wd, all) {
+    var L = ['Дежурства ' + opsDateRu(date) + ', ' + DUTY_WD[wd].toLowerCase()], nm = function (sl) { var n = dutyName(du, date, sl, wd), ov = du.over[date + '|' + sl.k]; return (dutyVac(n) ? 'вакансия' : n) + (ov ? ' (вместо ' + ov.was + ')' : ''); };
+    var g = function (x) { return all.filter(function (s) { return s.g === x && s.main; }); }, t;
+    t = g('street'); if (t.length) L.push('', 'Улица: ' + nm(t[0]));
+    t = g('admin'); if (t.length) L.push('Дежурный администратор: ' + nm(t[0]));
+    t = g('canteen'); if (t.length) { L.push('', 'Столовая и буфет:'); t.forEach(function (s) { L.push(s.l + ' — ' + nm(s)); }); }
+    t = g('floor'); if (t.length) { L.push('', 'Этажи:'); var cur = null, line = ''; t.forEach(function (s) { if (s.sec !== cur) { if (cur !== null) L.push(line); cur = s.sec; line = s.sec + ': ' + nm(s); } else line += ', ' + nm(s); }); L.push(line); }
+    return L.join('\n');
+  }
+  function dutyPrint(du) {
+    var s = du.s, th = '<tr>' + DUTY_WD.map(function (x) { return '<th>' + x + '</th>'; }).join('') + '</tr>', row = function (v) { return '<tr>' + v.map(function (x) { return '<td' + (dutyVac(x) ? ' class="v"' : '') + '>' + esc(x) + '</td>'; }).join('') + '</tr>'; }, h = '';
+    var pair = function (t, p) { return p ? '<h2>' + t + '</h2><table>' + th + row(p.m) + '<tr><td colspan="5" class="s">Замена в случае отсутствия основного дежурного</td></tr>' + row(p.r) + '</table>' : ''; };
+    h += pair('Дежурство на уличной территории', s.street) + pair('Дежурный администратор', s.admin);
+    if (s.canteen && s.canteen.length) h += '<h2>Дежурство по столовой и буфету</h2><table><tr><th>Перемена</th>' + DUTY_WD.map(function (x) { return '<th>' + x + '</th>'; }).join('') + '</tr>' + s.canteen.map(function (r) { return '<tr><td class="s">' + esc(r.t) + '</td>' + r.v.map(function (x) { return '<td' + (dutyVac(x) ? ' class="v"' : '') + '>' + esc(x) + '</td>'; }).join('') + '</tr>'; }).join('') + '</table>';
+    if (s.floors && s.floors.length) h += '<h2>Дежурство преподавателей</h2><table><tr><th></th>' + DUTY_WD.map(function (x) { return '<th>' + x + '</th>'; }).join('') + '</tr>' + s.floors.map(function (f) { return '<tr><td colspan="6" class="s">' + esc(f.n) + '</td></tr>' + f.rows.map(function (r) { return '<tr><td class="s">' + esc(r.l) + '</td>' + r.v.map(function (x) { return '<td' + (dutyVac(x) ? ' class="v"' : '') + '>' + esc(x) + '</td>'; }).join('') + '</tr>'; }).join(''); }).join('') + '</table>';
+    var w = window.open('', '_blank'); if (!w) { UI.toast('Разрешите всплывающие окна, чтобы открыть печать'); return; }
+    w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>График дежурств</title><style>body{font:13px/1.35 Arial,sans-serif;margin:16px;color:#111}h1{font-size:18px;margin:0 0 4px}h2{font-size:15px;margin:16px 0 6px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #888;padding:4px 6px;text-align:center}th{background:#e8edf5}td.s{background:#f3f3f3;font-weight:700;text-align:left}td.v{color:#b3261e;font-weight:700}@media print{h2{break-after:avoid}table{break-inside:avoid}}</style></head><body><h1>График дежурства, отделение «Диджитал»</h1>' + h + '</body></html>');
+    w.document.close(); w.focus(); setTimeout(function () { try { w.print(); } catch (e) {} }, 300);
+  }
+  function duty() {
+    var d = opsLoad(), du = d.duty = d.duty || { s: null, over: {}, done: {} }, o = st.duty = st.duty || { date: K.today(), q: '', rep: null };
+    var h = '<div class="hero"><h1>Дежурства</h1><p>Кто дежурит сегодня, замены и свободные места. График загружается из Word и хранится в закрытой таблице журнала, видят его только администраторы.</p><p class="mut sm" id="opSync"></p></div>';
+    opsPull();
+    if (!du.s) {
+      app.innerHTML = h + '<div class="card sec"><h3>Загрузите график дежурств</h3><div class="mut sm">Файл Word (.docx) с таблицами: уличная территория, дежурный администратор, столовая и буфет, дежурство преподавателей по этажам. Таблицы распознаются автоматически.</div><div style="margin-top:12px"><button class="btn" id="dtImp">📥 Загрузить график из Word</button></div></div>';
+      $('#dtImp').onclick = dutyPick; opsSyncUi(); return;
+    }
+    var date = dutyWork(o.date || K.today()), wd = dutyIdx(date), shifted = date !== o.date; o.date = date;
+    var all = dutySlots(du.s), mains = all.filter(function (s) { return s.main; }), vac = 0, dn = 0, week = 0;
+    mains.forEach(function (sl) { var n = dutyName(du, date, sl, wd); if (dutyVac(n)) vac++; if (du.done[date + '|' + sl.k]) dn++; });
+    all.forEach(function (sl) { if (sl.main) sl.v.forEach(function (x) { if (dutyVac(x)) week++; }); });
+    var nd = mains.length - vac;
+    h += '<div class="card sec"><div class="dtbar"><button class="btn ghost sm" id="dtPrev" aria-label="Предыдущий день">‹</button><input type="date" id="dtDate" value="' + date + '"><button class="btn ghost sm" id="dtNext" aria-label="Следующий день">›</button><button class="btn ghost sm" id="dtToday">Сегодня</button><b class="dtday">' + DUTY_WD[wd] + ', ' + opsDateRu(date) + '</b></div>' +
+      (shifted ? '<div class="mut sm" style="margin-top:6px">Выходной: показан ближайший рабочий день.</div>' : '') +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px"><span class="pill' + (vac ? ' red' : '') + '">свободных мест сегодня: ' + vac + '</span><span class="pill">на неделе основных мест без дежурного: ' + week + '</span><span class="pill">отдежурили: ' + dn + ' из ' + nd + '</span></div>' +
+      '<div class="opbar"><i style="width:' + (nd ? Math.round(dn * 100 / nd) : 0) + '%"></i></div>' +
+      '<div class="optool" style="margin-top:12px"><button class="btn sm" id="dtCopy">📋 Скопировать на сегодня</button><button class="btn ghost sm" id="dtPrint">🖨 Печать недели</button><button class="btn ghost sm" id="dtImp">📥 Загрузить график заново</button></div>' +
+      '<label style="display:block;margin-top:6px">Найти, когда дежурит<input id="dtQ" placeholder="Фамилия" value="' + esc(o.q) + '" style="width:100%"></label><div id="dtRes"></div></div>';
+    var G = function (g) { return all.filter(function (s) { return s.g === g; }); }, card = function (t, ac, inner, wide) { return inner ? '<div class="card sec dtc' + (wide ? ' wide' : '') + '" style="--ac:' + ac + '"><h3>' + t + '</h3>' + inner + '</div>' : ''; };
+    var R = function (g) { return dutyRows(du, all, G(g), date, wd, o); };
+    var fl = ''; (du.s.floors || []).forEach(function (f, i) { var part = all.filter(function (s) { return s.g === 'floor' && s.k.indexOf('fl' + i + '_') === 0; }); fl += '<div class="dtfs">' + dutyRows(du, all, part, date, wd, o) + '</div>'; });
+    h += '<div class="dtg">' + card('Уличная территория', '#4c9bff', R('street')) + card('Дежурный администратор', '#a06bff', R('admin')) + card('Столовая и буфет', '#ff9d3c', R('canteen')) + card('Дежурство преподавателей по этажам', '#28b46c', fl ? '<div class="dtfl">' + fl + '</div>' : '', true) + '</div>' +
+      '<datalist id="dtStaff">' + d.staff.map(function (s) { return '<option value="' + esc(s.fio) + '">'; }).join('') + '</datalist>';
+    app.innerHTML = h; opsSyncUi();
+    function save() { opsSave(d); duty(); }
+    $('#dtPrev').onclick = function () { o.date = dutyShift(date, -1); o.rep = null; duty(); };
+    $('#dtNext').onclick = function () { o.date = dutyShift(date, 1); o.rep = null; duty(); };
+    $('#dtToday').onclick = function () { o.date = K.today(); o.rep = null; duty(); };
+    $('#dtDate').onchange = function () { if (this.value) { o.date = this.value; o.rep = null; duty(); } };
+    $('#dtImp').onclick = dutyPick; $('#dtPrint').onclick = function () { dutyPrint(du); };
+    $('#dtCopy').onclick = function () { UI.copyBox('Дежурства на ' + opsDateRu(date), dutyText(du, date, wd, all), 'Текст выделен: нажмите «Скопировать» или Ctrl+C.'); };
+    $('#dtQ').oninput = function () { o.q = this.value; paintQ(); };
+    function paintQ() {
+      var q = (o.q || '').toLowerCase().replace(/ё/g, 'е').trim(), el = $('#dtRes'); if (!el) return;
+      if (!q) { el.innerHTML = ''; return; }
+      var by = {};
+      all.forEach(function (sl) { sl.v.forEach(function (n, i) { if (!n || dutyVac(n) || String(n).toLowerCase().replace(/ё/g, 'е').indexOf(q) < 0) return; var k = dutyKey(n); (by[k] = by[k] || { n: n, it: [] }).it.push(['Пн', 'Вт', 'Ср', 'Чт', 'Пт'][i] + ': ' + dutyPlace(sl) + (sl.main ? '' : ' (замена)')); }); });
+      var ks = Object.keys(by);
+      el.innerHTML = ks.length ? ks.map(function (k) { var x = by[k]; return '<div class="dtq"><b>' + esc(x.n) + '</b><div class="mut sm">' + x.it.map(esc).join('<br>') + '</div></div>'; }).join('') : '<div class="mut sm" style="margin-top:8px">В графике такой фамилии нет.</div>';
+    }
+    paintQ();
+    [].forEach.call(app.querySelectorAll('[data-dn]'), function (b) { b.onclick = function () { var k = date + '|' + b.dataset.dn; if (du.done[k]) delete du.done[k]; else du.done[k] = 1; save(); }; });
+    [].forEach.call(app.querySelectorAll('[data-rp]'), function (b) { b.onclick = function () { o.rep = o.rep === b.dataset.rp ? null : b.dataset.rp; duty(); }; });
+    var ri = $('#dtRepIn');
+    if (ri) {
+      var sl0 = all.filter(function (s) { return s.k === o.rep; })[0], key = date + '|' + o.rep;
+      var go = function () {
+        var v = cleanS(ri.value); if (!v) { UI.toast('Введите, кто заменяет'); ri.focus(); return; }
+        var was = du.over[key] ? du.over[key].was : sl0.v[wd];
+        if (v === was) delete du.over[key]; else du.over[key] = { n: v, was: was };
+        delete du.done[key]; o.rep = null; save(); UI.toast('Замена поставлена: ' + v);
+      };
+      $('#dtRepOk').onclick = go; ri.onkeydown = function (e) { if (e.key === 'Enter') go(); };
+      $('#dtRepNo').onclick = function () { o.rep = null; duty(); };
+      if ($('#dtRepRm')) $('#dtRepRm').onclick = function () { delete du.over[key]; o.rep = null; save(); };
+      ri.focus();
+    }
+  }
   function opsFormHtml(o) {
     if (!o.add) return '';
     return '<div class="opform"><label>ФИО<input id="opFio" placeholder="Фамилия Имя Отчество" autocomplete="off"></label><label>Должность<input id="opPos" placeholder="Преподаватель" autocomplete="off"></label><button class="btn" id="opOk">Добавить</button><button class="btn ghost" id="opNo">Отмена</button></div>';
@@ -931,7 +1097,7 @@ html[data-theme=light] .opb.on{color:#fff}
 
   function render() {
     [].forEach.call(document.querySelectorAll('#tabs button, .rail button'), function (b) { b.classList.toggle('on', b.dataset.t === st.tab); b.style.color = ''; });
-    if (st.tab === 'dash' || st.tab === 'an') dash(); else if (st.tab === 'tk') tasks(); else if (st.tab === 'cal') { cal(); bindRm(); } else if (st.tab === 'ros') roster(); else if (st.tab === 'ops') ops(); else log();
+    if (st.tab === 'dash' || st.tab === 'an') dash(); else if (st.tab === 'tk') tasks(); else if (st.tab === 'cal') { cal(); bindRm(); } else if (st.tab === 'ros') roster(); else if (st.tab === 'ops') ops(); else if (st.tab === 'duty') duty(); else log();
   }
   function bindRm() { [].forEach.call(app.querySelectorAll('[data-rm]'), function (b) { b.onclick = function () { S.setDay(b.dataset.rm, null); }; }); }
   function init() {
