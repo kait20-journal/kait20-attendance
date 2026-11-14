@@ -63,7 +63,7 @@
   }
 
   /* ---------- имя ---------- */
-  function who() { var w = S.who(); $('#whoBtn').textContent = w ? '👤 ' + K.shortName(w) : 'Представьтесь'; return w; }
+  function who() { var w = S.who(); $('#whoBtn').style.display = ''; $('#whoBtn').textContent = w ? '👤 ' + K.shortName(w) : 'Представьтесь'; return w; }
   function myGroups() { if (K.REMOTE) return S.groups().map(function (g) { return g.id; }); var w = S.who(), c = S.curators().filter(function (x) { return x.name === w; })[0]; return c ? c.groups : []; }
   function helpModal() {
     var ov = document.createElement('div'); ov.className = 'ov on'; ov.style.alignItems = 'center'; ov.style.zIndex = 90;
@@ -75,7 +75,7 @@
       '<li><b>Ошиблись?</b> Кнопка «↩ Отменить» возвращает предыдущую отметку.</li>' +
       '<li><b>Выходные и дистанционное обучение</b> проставляет Заведующий отделением в календаре; в выходные отметки закрыты.</li>' +
       '<li><b>Задачи и мероприятия</b> от Заведующего отделением — на главной странице. Сделали — нажмите «Выполнено».</li>' +
-      '</ol><div class="mut sm" style="margin-top:10px">Всё сохраняется автоматически. Ваша ссылка личная — не пересылайте её другим.</div><button class="btn" id="helpOk" style="width:100%;margin-top:14px">Понятно</button></div>';
+      '</ol><div class="mut sm" style="margin-top:10px">Всё сохраняется автоматически. Вход — по вашей корпоративной почте и своему паролю; никому его не сообщайте.</div><button class="btn" id="helpOk" style="width:100%;margin-top:14px">Понятно</button></div>';
     document.body.appendChild(ov); ov.querySelector('#helpOk').onclick = function () { ov.remove(); };
     ov.addEventListener('click', function (e) { if (e.target === ov) ov.remove(); });
     try { localStorage.setItem('kait.help.seen', '1'); } catch (e) {}
@@ -220,10 +220,10 @@
       var act = g.all.filter(function (s) { return !s.left || s.left >= t; }), gone = g.all.filter(function (s) { return s.left && s.left < t; });
       var h = '<div class="modal" style="max-height:90vh;overflow:auto"><h3 style="margin:0 0 4px">Состав группы ' + esc(g.name) + '</h3><div class="xs mut" style="margin-bottom:10px">Выбывший студент остаётся в истории отметок. Ошиблись — верните его.</div><div id="rerr" class="sm" style="color:#e5484d"></div>';
       h += '<div class="list">' + act.map(function (s, i) {
-        return '<div class="row" style="gap:6px"><span class="num">' + (i + 1) + '</span><div class="nm" style="flex:1;cursor:default">' + esc(s.fio) + (s.left ? ' <span class="xs mut">выбывает ' + fmt(s.left) + '</span>' : '') + '</div><button class="btn ghost sm" data-a="ren" data-s="' + s.id + '">Изменить</button><button class="btn ghost sm" data-a="out" data-s="' + s.id + '">Выбыл</button></div>';
+        return '<div class="row" style="gap:6px;flex-wrap:wrap"><span class="num">' + (i + 1) + '</span><div class="nm" style="flex:1 1 140px;min-width:0;cursor:default;overflow-wrap:break-word">' + esc(s.fio) + (s.left ? ' <span class="xs mut">выбывает ' + fmt(s.left) + '</span>' : '') + '</div><span style="display:flex;gap:6px;flex:none;margin-left:auto"><button class="btn ghost sm" data-a="ren" data-s="' + s.id + '">Изменить</button><button class="btn ghost sm" data-a="out" data-s="' + s.id + '">Выбыл</button></span></div>';
       }).join('') + '</div>';
       h += '<div style="margin-top:12px;display:flex;gap:8px"><button class="btn" data-a="add" style="flex:1">＋ Добавить студента</button><button class="btn ghost" data-a="close">Закрыть</button></div>';
-      if (gone.length) h += '<h4 style="margin:16px 0 6px">Выбывшие</h4><div class="list">' + gone.map(function (s) { return '<div class="row" style="gap:6px"><div class="nm mut" style="flex:1;cursor:default">' + esc(s.fio) + ' <span class="xs">до ' + fmt(s.left) + '</span></div><button class="btn ghost sm" data-a="back" data-s="' + s.id + '">Вернуть</button></div>'; }).join('') + '</div>';
+      if (gone.length) h += '<h4 style="margin:16px 0 6px">Выбывшие</h4><div class="list">' + gone.map(function (s) { return '<div class="row" style="gap:6px;flex-wrap:wrap"><div class="nm mut" style="flex:1 1 140px;min-width:0;cursor:default;overflow-wrap:break-word">' + esc(s.fio) + ' <span class="xs">до ' + fmt(s.left) + '</span></div><button class="btn ghost sm" data-a="back" data-s="' + s.id + '">Вернуть</button></div>'; }).join('') + '</div>';
       ov.innerHTML = h + '</div>';
     }
     function run(p, msg) {
@@ -319,6 +319,7 @@
       });
     };
     var loginScreen = function (msg) {
+      var wb = document.getElementById('whoBtn'); if (wb) wb.style.display = 'none';
       app.innerHTML = '<div class="card" style="padding:22px;margin:20px auto;max-width:420px"><h2 style="margin:0 0 4px">Вход в журнал</h2><div class="mut sm">Войдите по корпоративной почте.</div>' +
         '<div id="lerr" class="sm" style="color:#e5484d;margin-top:10px;min-height:18px">' + esc(msg || '') + '</div>' +
         '<label class="sm mut" style="display:block;margin-top:6px">Почта<input id="lem" type="email" autocomplete="username" value="' + esc(lget(EMK)) + '" style="' + inpS + '"></label>' +
