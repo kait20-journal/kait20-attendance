@@ -1097,6 +1097,7 @@ html[data-theme=light] .opb.on{color:#fff}
 
   function render() {
     [].forEach.call(document.querySelectorAll('#tabs button, .rail button'), function (b) { b.classList.toggle('on', b.dataset.t === st.tab); b.style.color = ''; });
+    var tb = document.getElementById('tabs'), on = tb && tb.querySelector('button.on'); if (tb && on) { var q = on.getBoundingClientRect(), w = tb.getBoundingClientRect(); tb.scrollLeft += (q.left + q.width / 2) - (w.left + w.width / 2); }
     if (st.tab === 'dash' || st.tab === 'an') dash(); else if (st.tab === 'tk') tasks(); else if (st.tab === 'cal') { cal(); bindRm(); } else if (st.tab === 'ros') roster(); else if (st.tab === 'ops') ops(); else if (st.tab === 'duty') duty(); else log();
   }
   function bindRm() { [].forEach.call(app.querySelectorAll('[data-rm]'), function (b) { b.onclick = function () { S.setDay(b.dataset.rm, null); }; }); }
