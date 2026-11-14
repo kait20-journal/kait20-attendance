@@ -979,9 +979,10 @@ html[data-theme=light] .opb.on{color:#fff}
       { name: 'Все совещания', rows: hist, widths: [40, 34].concat(dates.map(function () { return 11; })).concat([8, 14]), headerRows: 1 }
     ]), 'Оперативка_' + date + '.xlsx', XLSX_T);
   }
+  function opsDefDate() { var x = new Date(K.today() + 'T12:00:00'); while (x.getDay() !== 3) x.setDate(x.getDate() - 1); return dutyIso(x); }
   function ops() {
-    var d = opsLoad(), o = st.ops = st.ops || { date: K.today(), q: '', f: 'all', edit: false, add: false }, h;
-    if (!o.date) o.date = K.today();
+    var d = opsLoad(), o = st.ops = st.ops || { date: opsDefDate(), q: '', f: 'all', edit: false, add: false }, h;
+    if (!o.date) o.date = opsDefDate();
     h = '<div class="hero"><h1>Оперативка</h1><p>Отмечайте, кто пришёл на совещание. Список сотрудников и архив совещаний сохраняются в закрытой таблице журнала, видны только администратору.</p><p class="mut sm" id="opSync"></p></div>';
     opsPull();
     if (!d.staff.length) {
@@ -1054,7 +1055,7 @@ html[data-theme=light] .opb.on{color:#fff}
       UI.ask('Удалить совещание ' + opsDateRu(dt) + '? Отметки по нему пропадут, вернуть их нельзя.', 'Удалить').then(function (ok) {
         if (!ok) return;
         var dd = opsLoad(); delete dd.mt[dt]; dd.del = dd.del || {}; dd.del[dt] = 1; opsSave(dd);
-        if (o.date === dt) o.date = K.today(); ops(); UI.toast('Совещание удалено');
+        if (o.date === dt) o.date = opsDefDate(); ops(); UI.toast('Совещание удалено');
       });
     }; });
   }
